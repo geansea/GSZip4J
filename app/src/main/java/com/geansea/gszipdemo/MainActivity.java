@@ -7,22 +7,24 @@ import android.view.View;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
-    private Button unzipButton;
-    private Button zipButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        unzipButton = (Button) findViewById(R.id.unzipButton);
-        zipButton = (Button) findViewById(R.id.zipButton);
-
-        unzipButton.setOnClickListener(new JumpClickListener());
-        zipButton.setOnClickListener(new JumpClickListener());
+        Button unzipButton = (Button) findViewById(R.id.unzipButton);
+        if (unzipButton != null) {
+            unzipButton.setOnClickListener(new JumpClickListener());
+        }
+        
+        Button zipButton = (Button) findViewById(R.id.zipButton);
+        if (zipButton != null) {
+            zipButton.setOnClickListener(new JumpClickListener());
+        }
     }
 
-    class JumpClickListener implements View.OnClickListener {
+    private class JumpClickListener implements View.OnClickListener {
         @Override
         public void onClick(View v) {
             Intent jumpIntent = null;
