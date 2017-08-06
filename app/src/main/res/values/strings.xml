@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">GsZipDemo</string>
+    <string name="unzipButtonTitle">Test GsZipFile</string>
+    <string name="zipButtonTitle">Test GsZipPacker</string>
+    <string name="openButton">Open</string>
+    <string name="packButton">Pack</string>
+    <string name="password">Password</string>
+    <string name="iconDesc">icon</string>
+</resources>
