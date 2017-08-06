@@ -75,9 +75,9 @@ public class UnzipActivity extends AppCompatActivity {
     }
 
     private void clickParent() {
-        if (folderNode.getParent() != null) {
-            folderNode = folderNode.getParent();
-            entryListView.setAdapter(new ZipEntryAdapter(this, folderNode));
+        GsZipEntryNode parentNode = folderNode.getParent();
+        if (parentNode != null) {
+            entryListView.setAdapter(new ZipEntryAdapter(this, parentNode));
         } else {
             Toast.makeText(getApplicationContext(), "No parent", Toast.LENGTH_SHORT).show();
         }
@@ -143,7 +143,7 @@ public class UnzipActivity extends AppCompatActivity {
         public View getView(int position, View convertView, ViewGroup parent) {
             ViewHolder holder;
             if (convertView == null) {
-                convertView = layoutInflater.inflate(R.layout.list_unzip, null);
+                convertView = layoutInflater.inflate(R.layout.list_unzip, parent, false);
                 holder = new ViewHolder();
                 holder.iconView = (ImageView) convertView.findViewById(R.id.icon);
                 holder.nameView = (TextView) convertView.findViewById(R.id.name);
