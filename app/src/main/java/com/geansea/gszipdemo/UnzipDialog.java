@@ -25,7 +25,8 @@ class UnzipDialog extends Dialog {
         });
 
         LayoutInflater layoutInflater = LayoutInflater.from(context);
-        View contentView = layoutInflater.inflate(R.layout.dialog_unzip, null);
+        final ViewGroup nullParent = null;
+        View contentView = layoutInflater.inflate(R.layout.dialog_unzip, nullParent);
         addContentView(contentView, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         setContentView(contentView);

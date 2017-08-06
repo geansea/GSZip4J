@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         if (unzipButton != null) {
             unzipButton.setOnClickListener(new JumpClickListener());
         }
-        
+
         Button zipButton = (Button) findViewById(R.id.zipButton);
         if (zipButton != null) {
             zipButton.setOnClickListener(new JumpClickListener());
