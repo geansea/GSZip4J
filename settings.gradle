@@ -1,1 +1,1 @@
-include ':app', ':gszip'
+include ':app', ':gszip', ':libzip'
