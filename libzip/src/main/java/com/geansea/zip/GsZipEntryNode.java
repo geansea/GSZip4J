@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipUtil;
+import com.google.common.base.Preconditions;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -69,7 +69,7 @@ public class GsZipEntryNode {
             if (name.isEmpty()) {
                 continue;
             }
-            GsZipUtil.check(!node.isFile(), "Adding child for file node");
+            Preconditions.checkState(!node.isFile(), "Adding child for file node");
             GsZipEntryNode child = node.getChild(name);
             if (child == null) {
                 child = new GsZipEntryNode(node, name);
@@ -77,7 +77,7 @@ public class GsZipEntryNode {
             }
             node = child;
         }
-        GsZipUtil.check(null == node.entry, "Entry already exist");
+        Preconditions.checkState(null == node.entry, "Entry already exist");
         node.entry = entry;
     }
 }

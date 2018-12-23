@@ -1,33 +1,31 @@
 package com.geansea.zip.util;
 
+import com.google.common.base.Preconditions;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Random;
 
-public class GsZipPkwareEncryptStream extends InputStream {
+public class GsZipPKWareEncryptStream extends InputStream {
     private static final int HEADER_LEN = 12;
 
     private final InputStream base;
     private final byte[] password;
     private final byte check;
-    private GsZipPkwareKey key;
+    private GsZipPKWareKey key;
     private byte[] header;
     private int headerPos;
 
-    public GsZipPkwareEncryptStream(@NonNull InputStream base,
+    public GsZipPKWareEncryptStream(@NonNull InputStream base,
                                     byte @NonNull [] password,
-                                    byte check) throws IOException {
-        GsZipUtil.check(password.length > 0, "Empty password");
+                                    byte check) throws IllegalArgumentException {
+        Preconditions.checkArgument(password.length > 0, "Empty password");
         this.base = base;
         this.password = password;
         this.check = check;
-        initKey();
-    }
-
-    private void initKey() {
-        key = new GsZipPkwareKey();
+        key = new GsZipPKWareKey();
         for (byte c : password) {
             key.update(c);
         }

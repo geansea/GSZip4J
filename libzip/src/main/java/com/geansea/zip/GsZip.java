@@ -1,8 +1,7 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipUtil;
+import com.google.common.base.Preconditions;
 
-import org.checkerframework.checker.nullness.NullnessUtil;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
@@ -15,27 +14,24 @@ import java.util.LinkedList;
 public class GsZip {
     public static boolean unpackToFolder(@NonNull String zipPath, @NonNull String dirPath, @NonNull String password) {
         try {
-            GsZipFile zip = GsZipFile.create(zipPath);
-            GsZipUtil.check(zip != null, "Cannot open zip: " + zipPath);
+            GsZipFile zip = new GsZipFile(zipPath);
             File dir = new File(dirPath);
-            GsZipUtil.check(!dir.exists(), "Folder already exist: " + dirPath);
-            GsZipUtil.check(dir.mkdirs(), "Make dirs Failed");
+            Preconditions.checkState(!dir.exists(), "Folder already exist: " + dirPath);
+            Preconditions.checkState(dir.mkdirs(), "Make dirs Failed");
             if (zip.needPassword()) {
-                GsZipUtil.check(!password.isEmpty(), "Password is empty");
+                Preconditions.checkState(!password.isEmpty(), "Password is empty");
                 zip.setPassword(password);
             }
             for (int index = 0; index < zip.size(); ++index) {
                 GsZipEntry entry = zip.getEntry(index);
-                GsZipUtil.check(entry != null, "Entry is null for index: " + index);
                 File file = new File(dir.getPath(), entry.getName());
                 if (entry.isFile()) {
-                    GsZipUtil.check(!file.exists(), "File already exists");
-                    if (!file.getParentFile().exists()) {
-                        GsZipUtil.check(file.getParentFile().mkdirs(), "Create parent dirs fail");
+                    Preconditions.checkState(!file.exists(), "File already exists");
+                    if (file.getParentFile() != null && !file.getParentFile().exists()) {
+                        Preconditions.checkState(file.getParentFile().mkdirs(), "Create parent dirs fail");
                     }
-                    GsZipUtil.check(file.createNewFile(), "Create file fail");
+                    Preconditions.checkState(file.createNewFile(), "Create file fail");
                     InputStream entryStream = zip.getInputStream(index);
-                    GsZipUtil.check(entryStream != null, "Entry stream is null for index: " + index);
                     OutputStream outStream = new FileOutputStream(file);
                     byte[] buffer = new byte[1024];
                     int count;
@@ -44,7 +40,7 @@ public class GsZip {
                     }
                 } else {
                     if (!file.exists()) {
-                        GsZipUtil.check(file.mkdirs(), "Create dirs fail");
+                        Preconditions.checkState(file.mkdirs(), "Create dirs fail");
                     }
                 }
             }
@@ -61,10 +57,10 @@ public class GsZip {
                                      boolean includingSelf) {
         try {
             File dir = new File(dirPath);
-            GsZipUtil.check(dir.exists(), "Folder not exist");
+            Preconditions.checkState(dir.exists(), "Folder not exist");
             LinkedList<String> paths = new LinkedList<>();
             if (dir.isFile()) {
-                GsZipUtil.check(includingSelf, "Should set including self when pack file");
+                Preconditions.checkState(includingSelf, "Should set including self when pack file");
                 String path = dir.getName();
                 paths.add(path);
                 dir = dir.getParentFile();
@@ -81,16 +77,16 @@ public class GsZip {
             GsZipPacker packer = new GsZipPacker();
             for (String path : paths) {
                 File file = new File(dir, path);
-                GsZipUtil.check(file.exists(), "Path error");
+                Preconditions.checkState(file.exists(), "Path error");
                 if (file.isFile()) {
                     packer.addFile(path, file.getAbsolutePath());
                 } else {
                     packer.addFolder(path);
                 }
             }
-            GsZipUtil.check(packer.packTo(zipPath, password), "Pack fail");
+            Preconditions.checkState(packer.packTo(zipPath, password), "Pack fail");
             return true;
-        } catch (IOException e) {
+        } catch (IllegalStateException e) {
             e.printStackTrace();
             return false;
         }

@@ -8,12 +8,6 @@ import java.util.Stack;
 import java.util.zip.CRC32;
 
 public class GsZipUtil {
-    public static void check(boolean state, String msg) throws IOException {
-        if (!state) {
-            throw new IOException(msg);
-        }
-    }
-
     public static int getStreamCRC(@NonNull InputStream stream) throws IOException {
         CRC32 crc32 = new CRC32();
         stream.reset();

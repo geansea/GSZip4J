@@ -1,35 +1,37 @@
 package com.geansea.zip.util;
 
+import com.google.common.base.Preconditions;
+
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 
+import javax.annotation.Nonnegative;
+
 public class GsZipSubStream extends InputStream {
     private final RandomAccessFile file;
-    private long offset;
-    private long endOffset;
+    private int offset;
+    private int endOffset;
 
     public GsZipSubStream(@NonNull RandomAccessFile file,
-                          long offset,
-                          long endOffset) throws IOException {
-        GsZipUtil.check(0 <= offset, "Error offset");
-        GsZipUtil.check(offset <= endOffset, "Error length");
-        GsZipUtil.check(endOffset <= file.length(), "Error end offset");
+                          @Nonnegative int offset,
+                          @Nonnegative int endOffset) throws IOException, IndexOutOfBoundsException {
+        Preconditions.checkPositionIndex(offset, endOffset, "Error length");
+        Preconditions.checkPositionIndex(endOffset, (int) file.length(), "Error end offset");
         this.file = file;
         this.offset = offset;
         this.endOffset = endOffset;
     }
 
-    public GsZipSubStream(RandomAccessFile file, long offset) throws IOException {
-        this(file, offset, file.length());
+    public GsZipSubStream(@NonNull RandomAccessFile file, int offset) throws IOException, IndexOutOfBoundsException {
+        this(file, offset, (int) file.length());
     }
 
-    public void resetSize(long size) throws IOException {
-        GsZipUtil.check(size >= 0, "Error size");
+    public void resetSize(@Nonnegative int size) throws IOException {
         endOffset = offset + size;
-        GsZipUtil.check(endOffset <= file.length(), "");
+        Preconditions.checkPositionIndex(endOffset, (int) file.length(), "Error end offset");
     }
 
     @Override
@@ -45,9 +47,9 @@ public class GsZipSubStream extends InputStream {
     }
 
     @Override
-    public int read(byte @NonNull[] buffer, int byteOffset, int byteCount) throws IOException {
+    public int read(byte @NonNull [] buffer, int byteOffset, int byteCount) throws IOException {
         synchronized (file) {
-            byteCount = Math.min(byteCount, (int) (endOffset - offset));
+            byteCount = Math.min(byteCount, endOffset - offset);
             file.seek(offset);
             int count = file.read(buffer, byteOffset, byteCount);
             if (count > 0) {

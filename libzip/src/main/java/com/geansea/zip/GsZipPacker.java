@@ -2,8 +2,9 @@ package com.geansea.zip;
 
 import com.geansea.zip.util.GsZipCentralDirEnd;
 import com.geansea.zip.util.GsZipEntryHeader;
-import com.geansea.zip.util.GsZipPkwareEncryptStream;
+import com.geansea.zip.util.GsZipPKWareEncryptStream;
 import com.geansea.zip.util.GsZipUtil;
+import com.google.common.base.Preconditions;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -39,20 +40,20 @@ public class GsZipPacker {
     public boolean addFile(@NonNull String entryName, @NonNull String fileName) {
         try {
             entryName = GsZipUtil.getCanonicalPath(entryName);
-            GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
-            GsZipUtil.check(new File(fileName).isFile(), "Invalid file name");
+            Preconditions.checkState(!entryName.isEmpty(), "Empty entry name");
+            Preconditions.checkState(new File(fileName).isFile(), "Invalid file name");
 
-            GsZipUtil.check(!entries.containsKey(entryName), "Already has entry");
+            Preconditions.checkState(!entries.containsKey(entryName), "Already has entry");
             String parentName = GsZipUtil.getParentPath(entryName);
             if (!parentName.isEmpty()) {
-                GsZipUtil.check(addFolder(parentName), "Add parent folder fail");
+                Preconditions.checkState(addFolder(parentName), "Add parent folder fail");
             }
 
             EntryInfo info = new EntryInfo(entryName, fileName);
             entryList.add(info);
             entries.put(entryName, fileName);
             return true;
-        } catch (IOException e) {
+        } catch (IllegalStateException e) {
             e.printStackTrace();
             return false;
         }
@@ -61,24 +62,24 @@ public class GsZipPacker {
     public boolean addFolder(@NonNull String entryName) {
         try {
             entryName = GsZipUtil.getCanonicalPath(entryName);
-            GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
+            Preconditions.checkState(!entryName.isEmpty(), "Empty entry name");
 
             if (entries.containsKey(entryName)) {
                 // Folder already added
-                GsZipUtil.check(entries.get(entryName).isEmpty(), "Same name with file");
+                Preconditions.checkState(entries.get(entryName).isEmpty(), "Same name with file");
                 return true;
             }
 
             String parentName = GsZipUtil.getParentPath(entryName);
             if (!parentName.isEmpty()) {
-                GsZipUtil.check(addFolder(parentName), "Add parent folder fail");
+                Preconditions.checkState(addFolder(parentName), "Add parent folder fail");
             }
 
             EntryInfo info = new EntryInfo(entryName + "/", "");
             entryList.add(info);
             entries.put(entryName, "");
             return true;
-        } catch (IOException e) {
+        } catch (IllegalStateException e) {
             e.printStackTrace();
             return false;
         }
@@ -87,7 +88,7 @@ public class GsZipPacker {
     public boolean packTo(@NonNull String filePath, @NonNull String password) {
         try {
             File file = new File(filePath);
-            GsZipUtil.check(!file.exists(), "File already exist");
+            Preconditions.checkState(!file.exists(), "File already exist");
             FileOutputStream stream = new FileOutputStream(file);
             return packTo(stream, password);
         } catch (IOException e) {
@@ -136,7 +137,7 @@ public class GsZipPacker {
                     byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
                     byte timeCheck = header.getTimeCheck();
                     // byte crcCheck = header.getCrcCheck();
-                    InputStream encStream = new GsZipPkwareEncryptStream(entryStream, pwBytes, timeCheck);
+                    InputStream encStream = new GsZipPKWareEncryptStream(entryStream, pwBytes, timeCheck);
                     encStream = new BufferedInputStream(encStream);
                     encStream.mark(Integer.MAX_VALUE);
                     int encLength = GsZipUtil.getStreamLength(encStream);
@@ -192,14 +193,10 @@ public class GsZipPacker {
             path = fileName;
             header = new GsZipEntryHeader();
             header.setFileName(entryName);
-            if (isFile()) {
+            if (!path.isEmpty()) {
                 long lastModTime = new File(fileName).lastModified();
                 header.setLastModifiedTime(new Date(lastModTime));
             }
-        }
-
-        boolean isFile() {
-            return path.isEmpty();
         }
     }
 }

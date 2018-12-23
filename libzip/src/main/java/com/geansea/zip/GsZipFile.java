@@ -2,13 +2,15 @@ package com.geansea.zip;
 
 import com.geansea.zip.util.GsZipCentralDirEnd;
 import com.geansea.zip.util.GsZipEntryHeader;
-import com.geansea.zip.util.GsZipPkwareDecryptStream;
+import com.geansea.zip.util.GsZipPKWareDecryptStream;
 import com.geansea.zip.util.GsZipSubStream;
-import com.geansea.zip.util.GsZipUtil;
+import com.google.common.base.Preconditions;
 
+import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
@@ -26,17 +28,7 @@ public class GsZipFile {
     private @NonNull ArrayList<GsZipEntry> entryList;
     private @NonNull GsZipEntryNode entryTree;
 
-    public static @Nullable GsZipFile create(@NonNull String path) {
-        GsZipFile zipFile = null;
-        try {
-            zipFile = new GsZipFile(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return zipFile;
-    }
-
-    private GsZipFile(@NonNull String path) throws IOException {
+    public GsZipFile(@NonNull String path) throws IOException {
         name = path;
         password = "";
         file = new RandomAccessFile(name, "r");
@@ -75,54 +67,46 @@ public class GsZipFile {
         return comment;
     }
 
-    public @Nullable GsZipEntry getEntry(int index) {
-        GsZipEntry entry = null;
-        if (0 <= index && index < size()) {
-            entry = entryList.get(index);
-        }
-        return entry;
+    public @NonNull GsZipEntry getEntry(int index) throws IndexOutOfBoundsException {
+        return entryList.get(index);
     }
 
-    public @Nullable InputStream getInputStream(int index) {
-        try {
-            GsZipEntry entry = getEntry(index);
-            GsZipUtil.check(entry != null, "Error index");
-            GsZipUtil.check(entry.isFile(), "Only for file");
-            synchronized (this) {
-                GsZipSubStream subStream = new GsZipSubStream(file, entry.getLocalOffset());
-                GsZipEntryHeader localHeader = new GsZipEntryHeader();
-                localHeader.readFrom(subStream, false);
-                GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
-                GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
-                subStream.resetSize(entry.getCompressedSize());
+    public @NonNull InputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException {
+        GsZipEntry entry = getEntry(index);
+        if (!entry.isFile()) {
+            return new ByteArrayInputStream(new byte[0]);
+        }
+        synchronized (this) {
+            GsZipSubStream subStream = new GsZipSubStream(file, entry.getLocalOffset());
+            GsZipEntryHeader localHeader = new GsZipEntryHeader();
+            localHeader.readFrom(subStream, false);
+            GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
+            Preconditions.checkState(entry.matchLocal(localEntry), "Entry header mismatch");
+            subStream.resetSize(entry.getCompressedSize());
 
-                InputStream decryptStream = null;
-                if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
-                    decryptStream = subStream;
-                } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
-                    GsZipUtil.check(!password.isEmpty(), "Need password");
-                    byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
-                    byte timeCheck = entry.getTimeCheck();
-                    byte crcCheck = entry.getCrcCheck();
-                    decryptStream = new GsZipPkwareDecryptStream(subStream, pwBytes, timeCheck, crcCheck);
-                } else {
-                    GsZipUtil.check(false, "Not supported encrypt method");
-                }
-
-                InputStream uncompStream = null;
-                if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
-                    uncompStream = decryptStream;
-                } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
-                    uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
-                } else {
-                    GsZipUtil.check(false, "Not supported compress method");
-                }
-
-                return uncompStream;
+            InputStream decryptStream = null;
+            if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
+                decryptStream = subStream;
+            } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
+                Preconditions.checkState(!password.isEmpty(), "Need password");
+                byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
+                byte timeCheck = entry.getTimeCheck();
+                byte crcCheck = entry.getCrcCheck();
+                decryptStream = new GsZipPKWareDecryptStream(subStream, pwBytes, timeCheck, crcCheck);
+            } else {
+                throw new IOException("Not supported encrypt method");
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
+
+            InputStream uncompStream = null;
+            if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
+                uncompStream = decryptStream;
+            } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
+                uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
+            } else {
+                throw new IOException("Not supported compress method");
+            }
+
+            return uncompStream;
         }
     }
 
@@ -131,7 +115,7 @@ public class GsZipFile {
         return ((node != null) ? node.getEntry() : null);
     }
 
-    public @Nullable InputStream getInputStream(String path) {
+    public @Nullable InputStream getInputStream(String path) throws IOException {
         GsZipEntry entry = getEntry(path);
         return ((entry != null) ? getInputStream(entry.getIndex()) : null);
     }
@@ -140,9 +124,9 @@ public class GsZipFile {
         return entryTree;
     }
 
-    private void readCentralDirEnd() throws IOException {
+    private void readCentralDirEnd(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException {
         long scanOffset = file.length() - GsZipCentralDirEnd.BASE_SIZE;
-        GsZipUtil.check(scanOffset >= 0, "File too short to be a zip file");
+        Preconditions.checkState(scanOffset >= 0, "File too short to be a zip file");
 
         long stopOffset = Math.max(scanOffset - 0xFFFF, 0);
         long dirEndOffset = -1;
@@ -155,7 +139,7 @@ public class GsZipFile {
             scanOffset--;
         }
 
-        GsZipUtil.check(dirEndOffset >= 0, "Find central dir fail");
+        Preconditions.checkState(dirEndOffset >= 0, "Find central dir fail");
         int eocdSize = (int) (file.length() - dirEndOffset);
         byte[] bytes = new byte[eocdSize];
         file.seek(dirEndOffset);
@@ -165,7 +149,7 @@ public class GsZipFile {
         comment = dirEnd.getComment(StandardCharsets.UTF_8);
     }
 
-    private void readCentralDir() throws IOException {
+    private void readCentralDir(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException {
         int dirOffset = dirEnd.getDirOffset();
         int dirSize = dirEnd.getDirSize();
         GsZipSubStream rafStream = new GsZipSubStream(file, dirOffset, dirOffset + dirSize);
