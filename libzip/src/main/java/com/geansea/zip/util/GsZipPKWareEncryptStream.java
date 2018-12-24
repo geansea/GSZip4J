@@ -1,7 +1,6 @@
 package com.geansea.zip.util;
 
-import com.google.common.base.Preconditions;
-
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
@@ -12,44 +11,44 @@ public class GsZipPKWareEncryptStream extends InputStream {
     private static final int HEADER_LEN = 12;
 
     private final InputStream base;
-    private final byte[] password;
-    private final byte check;
-    private GsZipPKWareKey key;
-    private byte[] header;
+    private final GsZipPKWareKey key;
+    private final byte[] header;
     private int headerPos;
 
     public GsZipPKWareEncryptStream(@NonNull InputStream base,
                                     byte @NonNull [] password,
-                                    byte check) throws IllegalArgumentException {
-        Preconditions.checkArgument(password.length > 0, "Empty password");
+                                    byte checkByte) throws IllegalArgumentException {
         this.base = base;
-        this.password = password;
-        this.check = check;
         key = new GsZipPKWareKey();
+        header = new byte[HEADER_LEN];
+        headerPos = 0;
+        // Update key with password
         for (byte c : password) {
             key.update(c);
         }
-
-        header = new byte[HEADER_LEN];
+        // Init header
         Random random = new Random();
         random.nextBytes(header);
-        header[header.length - 1] = check;
+        header[header.length - 1] = checkByte;
+        // Update key and header
         for (int i = 0; i < header.length; ++i) {
             byte c = header[i];
             header[i] ^= key.cryptByte();
             key.update(c);
         }
-        headerPos = 0;
     }
 
     @Override
     public int available() throws IOException {
-        return (HEADER_LEN - headerPos) + base.available();
+        if (headerPos < header.length) {
+            return header.length - headerPos;
+        }
+        return base.available();
     }
 
     @Override
     public int read() throws IOException {
-        if (headerPos < HEADER_LEN) {
+        if (headerPos < header.length) {
             return header[headerPos++];
         }
         int value = base.read();
@@ -64,21 +63,28 @@ public class GsZipPKWareEncryptStream extends InputStream {
     }
 
     @Override
-    public int read(byte @NonNull [] buffer, int byteOffset, int byteCount) throws IOException {
-        if (headerPos < HEADER_LEN) {
-            int count = Math.min(HEADER_LEN - headerPos, byteCount);
-            System.arraycopy(header, headerPos, buffer, byteOffset, count);
-            headerPos += count;
-            return count;
+    public int read(byte @NonNull [] buffer,
+                    @NonNegative int byteOffset,
+                    @NonNegative int byteCount) throws IOException {
+        int headerCount = 0;
+        if (headerPos < header.length) {
+            headerCount = Math.min(header.length - headerPos, byteCount);
+            System.arraycopy(header, headerPos, buffer, byteOffset, headerCount);
+            headerPos += headerCount;
         }
-        int count = base.read(buffer, byteOffset, byteCount);
-        if (count > 0) {
+        if (headerCount >= byteCount) {
+            return headerCount;
+        }
+        int count = base.read(buffer, byteOffset + headerCount, byteCount - headerCount);
+        if (count >= 0) {
             for (int i = byteOffset; i < byteOffset + count; ++i) {
                 byte c = buffer[i];
                 buffer[i] ^= key.cryptByte();
                 key.update(c);
             }
-            return count;
+            return headerCount + count;
+        } else if (headerCount > 0) {
+            return headerCount;
         } else {
             return -1;
         }

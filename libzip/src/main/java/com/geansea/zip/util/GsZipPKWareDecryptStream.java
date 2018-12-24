@@ -1,7 +1,6 @@
 package com.geansea.zip.util;
 
-import com.google.common.base.Preconditions;
-
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
@@ -11,34 +10,31 @@ public class GsZipPKWareDecryptStream extends InputStream {
     private static final int HEADER_LEN = 12;
 
     private final InputStream base;
-    private final byte[] password;
-    private final byte crcCheck;
-    private final byte timeCheck;
-    private GsZipPKWareKey key;
+    private final GsZipPKWareKey key;
 
     public GsZipPKWareDecryptStream(@NonNull InputStream base,
                                     byte @NonNull [] password,
                                     byte timeCheck,
-                                    byte crcCheck) throws IOException, IllegalArgumentException, IllegalStateException {
-        Preconditions.checkArgument(password.length > 0, "Empty password");
+                                    byte crcCheck) throws IOException, GsZipException {
         this.base = base;
-        this.password = password;
-        this.crcCheck = crcCheck;
-        this.timeCheck = timeCheck;
         key = new GsZipPKWareKey();
+        // Update key with password
         for (byte c : password) {
             key.update(c);
         }
-
+        // Update key with header
         byte[] header = new byte[HEADER_LEN];
-        Preconditions.checkState(base.read(header) == header.length, "Read header fail");
-        byte check = 0;
+        int readLen = base.read(header);
+        GsZipUtil.check(readLen == header.length,
+                "Read header from base stream failed");
+        byte checkByte = 0;
         for (byte c : header) {
             c ^= key.cryptByte();
             key.update(c);
-            check = c;
+            checkByte = c;
         }
-        Preconditions.checkState(check == crcCheck || check == timeCheck, "Check fail");
+        GsZipUtil.check(checkByte == crcCheck || checkByte == timeCheck,
+                "Check byte not matched");
     }
 
     @Override
@@ -60,9 +56,11 @@ public class GsZipPKWareDecryptStream extends InputStream {
     }
 
     @Override
-    public int read(byte @NonNull [] buffer, int byteOffset, int byteCount) throws IOException {
+    public int read(byte @NonNull [] buffer,
+                    @NonNegative int byteOffset,
+                    @NonNegative int byteCount) throws IOException {
         int count = base.read(buffer, byteOffset, byteCount);
-        if (count > 0) {
+        if (count >= 0) {
             for (int i = byteOffset; i < byteOffset + count; ++i) {
                 buffer[i] ^= key.cryptByte();
                 key.update(buffer[i]);
