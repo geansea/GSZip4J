@@ -2,7 +2,6 @@ package com.geansea.zip;
 
 import com.geansea.zip.util.GsZipCentralDirEnd;
 import com.geansea.zip.util.GsZipEntryHeader;
-import com.geansea.zip.util.GsZipPKWareEncryptStream;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -175,7 +174,7 @@ public class GsZipPacker {
             dirEnd.writeTo(endBytes);
             stream.write(endBytes);
             return true;
-        } catch (IOException e) {
+        } catch (IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }

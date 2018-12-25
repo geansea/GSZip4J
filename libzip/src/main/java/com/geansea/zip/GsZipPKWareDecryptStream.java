@@ -1,7 +1,4 @@
-package com.geansea.zip.util;
-
-import com.geansea.zip.GsZipException;
-import com.geansea.zip.GsZipUtil;
+package com.geansea.zip;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
@@ -9,7 +6,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import java.io.IOException;
 import java.io.InputStream;
 
-public class GsZipPKWareDecryptStream extends InputStream {
+final class GsZipPKWareDecryptStream extends InputStream {
     private static final int HEADER_LEN = 12;
 
     private final InputStream base;

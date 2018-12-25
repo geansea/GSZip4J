@@ -1,4 +1,6 @@
-package com.geansea.zip.util;
+package com.geansea.zip;
+
+import com.geansea.zip.GsZipPKWareKey;
 
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;

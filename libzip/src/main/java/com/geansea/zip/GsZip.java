@@ -1,7 +1,5 @@
 package com.geansea.zip;
 
-import com.google.common.base.Preconditions;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.File;
@@ -16,21 +14,21 @@ public class GsZip {
         try {
             GsZipFile zip = new GsZipFile(zipPath);
             File dir = new File(dirPath);
-            Preconditions.checkState(!dir.exists(), "Folder already exist: " + dirPath);
-            Preconditions.checkState(dir.mkdirs(), "Make dirs Failed");
+            GsZipUtil.check(!dir.exists(), "Folder already exist: " + dirPath);
+            GsZipUtil.check(dir.mkdirs(), "Make dirs Failed");
             if (zip.needPassword()) {
-                Preconditions.checkState(!password.isEmpty(), "Password is empty");
+                GsZipUtil.check(!password.isEmpty(), "Password is empty");
                 zip.setPassword(password);
             }
             for (int index = 0; index < zip.size(); ++index) {
                 GsZipEntry entry = zip.getEntry(index);
                 File file = new File(dir.getPath(), entry.getName());
                 if (entry.isFile()) {
-                    Preconditions.checkState(!file.exists(), "File already exists");
+                    GsZipUtil.check(!file.exists(), "File already exists");
                     if (file.getParentFile() != null && !file.getParentFile().exists()) {
-                        Preconditions.checkState(file.getParentFile().mkdirs(), "Create parent dirs fail");
+                        GsZipUtil.check(file.getParentFile().mkdirs(), "Create parent dirs fail");
                     }
-                    Preconditions.checkState(file.createNewFile(), "Create file fail");
+                    GsZipUtil.check(file.createNewFile(), "Create file fail");
                     InputStream entryStream = zip.getInputStream(index);
                     OutputStream outStream = new FileOutputStream(file);
                     byte[] buffer = new byte[1024];
@@ -40,12 +38,12 @@ public class GsZip {
                     }
                 } else {
                     if (!file.exists()) {
-                        Preconditions.checkState(file.mkdirs(), "Create dirs fail");
+                        GsZipUtil.check(file.mkdirs(), "Create dirs fail");
                     }
                 }
             }
             return true;
-        } catch (IOException e) {
+        } catch (IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }
@@ -57,10 +55,10 @@ public class GsZip {
                                      boolean includingSelf) {
         try {
             File dir = new File(dirPath);
-            Preconditions.checkState(dir.exists(), "Folder not exist");
+            GsZipUtil.check(dir.exists(), "Folder not exist");
             LinkedList<String> paths = new LinkedList<>();
             if (dir.isFile()) {
-                Preconditions.checkState(includingSelf, "Should set including self when pack file");
+                GsZipUtil.check(includingSelf, "Should set including self when pack file");
                 String path = dir.getName();
                 paths.add(path);
                 dir = dir.getParentFile();
@@ -77,16 +75,16 @@ public class GsZip {
             GsZipPacker packer = new GsZipPacker();
             for (String path : paths) {
                 File file = new File(dir, path);
-                Preconditions.checkState(file.exists(), "Path error");
+                GsZipUtil.check(file.exists(), "Path error");
                 if (file.isFile()) {
                     packer.addFile(path, file.getAbsolutePath());
                 } else {
                     packer.addFolder(path);
                 }
             }
-            Preconditions.checkState(packer.packTo(zipPath, password), "Pack fail");
+            GsZipUtil.check(packer.packTo(zipPath, password), "Pack fail");
             return true;
-        } catch (IllegalStateException e) {
+        } catch (GsZipException e) {
             e.printStackTrace();
             return false;
         }

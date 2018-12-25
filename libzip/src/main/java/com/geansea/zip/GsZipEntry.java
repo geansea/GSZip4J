@@ -2,12 +2,11 @@ package com.geansea.zip;
 
 import com.geansea.zip.util.GsZipEntryHeader;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.nio.charset.Charset;
 import java.util.Date;
-
-import javax.annotation.Nonnegative;
 
 public class GsZipEntry {
     enum CompressMethod {
@@ -27,7 +26,7 @@ public class GsZipEntry {
     private final @NonNull String name;
     private final @NonNull Date time;
 
-    GsZipEntry(@Nonnegative int index, @NonNull GsZipEntryHeader header, @NonNull Charset charset) {
+    GsZipEntry(@NonNegative int index, @NonNull GsZipEntryHeader header, @NonNull Charset charset) {
         this.index = index;
         this.header = header;
         name = header.getFileName(charset);

@@ -1,6 +1,7 @@
 package com.geansea.zip.util;
 
-import com.google.common.base.Preconditions;
+import com.geansea.zip.GsZipException;
+import com.geansea.zip.GsZipUtil;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -83,15 +84,15 @@ public class GsZipEntryHeader {
         comment = new byte[commentLen];
     }
 
-    private void checkValid(boolean central) throws IOException {
-        Preconditions.checkState(sign == (central ? CENTRAL_MAGIC : LOCAL_MAGIC), "Error sign");
-        Preconditions.checkState(fileNameLen > 0, "Empty file name");
+    private void checkValid(boolean central) throws GsZipException {
+        GsZipUtil.check(sign == (central ? CENTRAL_MAGIC : LOCAL_MAGIC), "Error sign");
+        GsZipUtil.check(fileNameLen > 0, "Empty file name");
     }
 
-    private void checkValidForWrite(boolean central) throws IOException {
+    private void checkValidForWrite(boolean central) throws GsZipException {
         checkValid(central);
-        Preconditions.checkState((bitFlags & BITFLAG_LANGUAGE_UTF8) != 0, "Error encoding for file name");
-        Preconditions.checkState(compMethod == COMPRESS_STORED || compMethod == COMPRESS_FLATE, "Error compress method");
+        GsZipUtil.check((bitFlags & BITFLAG_LANGUAGE_UTF8) != 0, "Error encoding for file name");
+        GsZipUtil.check(compMethod == COMPRESS_STORED || compMethod == COMPRESS_FLATE, "Error compress method");
     }
 
     public boolean matchLocal(@NonNull GsZipEntryHeader header) {
@@ -232,10 +233,10 @@ public class GsZipEntryHeader {
         localOffset = offset;
     }
 
-    public void readFrom(@NonNull InputStream stream, boolean central) throws IOException {
+    public void readFrom(@NonNull InputStream stream, boolean central) throws IOException, GsZipException {
         int headerSize = central ? CENTRAL_HEADER_SIZE : LOCAL_HEADER_SIZE;
         byte[] bytes = new byte[headerSize];
-        Preconditions.checkState(stream.read(bytes) == bytes.length, "Read fail");
+        GsZipUtil.check(stream.read(bytes) == bytes.length, "Read fail");
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
         sign = byteBuffer.getInt();
@@ -255,19 +256,19 @@ public class GsZipEntryHeader {
         intAttrib = central ? byteBuffer.getShort() : 0;
         extAttrib = central ? byteBuffer.getInt() : 0;
         localOffset = central ? byteBuffer.getInt() : 0;
-        Preconditions.checkState(byteBuffer.remaining() == 0, "Error size");
+        GsZipUtil.check(byteBuffer.remaining() == 0, "Error size");
 
         fileName = new byte[fileNameLen];
         if (fileNameLen > 0) {
-            Preconditions.checkState(stream.read(fileName) == fileNameLen, "Read fail");
+            GsZipUtil.check(stream.read(fileName) == fileNameLen, "Read fail");
         }
         extraField = new byte[extraFieldLen];
         if (extraFieldLen > 0) {
-            Preconditions.checkState(stream.read(extraField) == extraFieldLen, "Read fail");
+            GsZipUtil.check(stream.read(extraField) == extraFieldLen, "Read fail");
         }
         comment = new byte[commentLen];
         if (commentLen > 0) {
-            Preconditions.checkState(stream.read(comment) == commentLen, "Read fail");
+            GsZipUtil.check(stream.read(comment) == commentLen, "Read fail");
         }
         checkValid(central);
     }
@@ -280,7 +281,7 @@ public class GsZipEntryHeader {
         }
     }
 
-    public void writeTo(@NonNull OutputStream stream, boolean central) throws IOException {
+    public void writeTo(@NonNull OutputStream stream, boolean central) throws IOException, GsZipException {
         checkValidForWrite(central);
         int headerSize = central ? CENTRAL_HEADER_SIZE : LOCAL_HEADER_SIZE;
         byte[] bytes = new byte[headerSize];
@@ -306,7 +307,7 @@ public class GsZipEntryHeader {
             byteBuffer.putInt(extAttrib);
             byteBuffer.putInt(localOffset);
         }
-        Preconditions.checkState(byteBuffer.remaining() == 0, "Error size");
+        GsZipUtil.check(byteBuffer.remaining() == 0, "Error size");
         stream.write(bytes);
 
         if (fileNameLen > 0) {
