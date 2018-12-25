@@ -1,6 +1,5 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.GTENegativeOne;
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -11,15 +10,15 @@ import java.io.RandomAccessFile;
  * Sub-stream for random access file.
  * This is usually the base stream of GsZipInputStream.
  */
-final class GsZipSubStream extends GsZipInputStream {
+final class SubStream extends GsZipInputStream {
     private final RandomAccessFile file;
     private final long start;
     private final long end;
     private long offset;
 
-    GsZipSubStream(@NonNull RandomAccessFile file,
-                   @NonNegative long start,
-                   @NonNegative long end) throws IOException, GsZipException {
+    SubStream(@NonNull RandomAccessFile file,
+              @NonNegative long start,
+              @NonNegative long end) throws IOException, GsZipException {
         GsZipUtil.check(start <= end,
                 "Start position should br no greater than end position");
         GsZipUtil.check(end <= file.length(),
@@ -27,7 +26,12 @@ final class GsZipSubStream extends GsZipInputStream {
         this.file = file;
         this.start = start;
         this.end = end;
-        offset = start;
+        restart();
+    }
+
+    SubStream(@NonNull RandomAccessFile file,
+              @NonNegative long start) throws IOException, GsZipException {
+        this(file, start, file.length());
     }
 
     @Override
@@ -63,11 +67,6 @@ final class GsZipSubStream extends GsZipInputStream {
         } else {
             return -1;
         }
-    }
-
-    @Override
-    public @GTENegativeOne long getLength() {
-        return end - start;
     }
 
     @Override

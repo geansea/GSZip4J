@@ -4,37 +4,27 @@ import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 
-final class GsZipPKWareDecryptStream extends InputStream {
+final class PKWareDecryptStream extends GsZipInputStream {
     private static final int HEADER_LEN = 12;
 
-    private final InputStream base;
-    private final GsZipPKWareKey key;
+    private final @NonNull GsZipInputStream base;
+    private final byte[] password;
+    private final PKWareKey key;
+    private final byte[] header;
 
-    public GsZipPKWareDecryptStream(@NonNull InputStream base,
-                                    byte @NonNull [] password,
-                                    byte timeCheck,
-                                    byte crcCheck) throws IOException, GsZipException {
+    PKWareDecryptStream(@NonNull GsZipInputStream base,
+                        byte @NonNull [] password,
+                        byte timeCheck,
+                        byte crcCheck) throws IOException, GsZipException {
         this.base = base;
-        key = new GsZipPKWareKey();
-        // Update key with password
-        for (byte c : password) {
-            key.update(c);
-        }
-        // Update key with header
-        byte[] header = new byte[HEADER_LEN];
-        int readLen = base.read(header);
-        GsZipUtil.check(readLen == header.length,
-                "Read header from base stream failed");
-        byte checkByte = 0;
-        for (byte c : header) {
-            c ^= key.cryptByte();
-            key.update(c);
-            checkByte = c;
-        }
+        this.password = password;
+        key = new PKWareKey();
+        header = new byte[HEADER_LEN];
+        restart();
+        byte checkByte = header[header.length - 1];
         GsZipUtil.check(checkByte == crcCheck || checkByte == timeCheck,
-                "Check byte not matched");
+                "Check byte not matched, the password maybe incorrect");
     }
 
     @Override
@@ -68,6 +58,25 @@ final class GsZipPKWareDecryptStream extends InputStream {
             return count;
         } else {
             return -1;
+        }
+    }
+
+    @Override
+    public void restart() throws IOException {
+        base.restart();
+        key.reset();
+        // Update key with password
+        for (byte c : password) {
+            key.update(c);
+        }
+        // Update key with header
+        int readLen = base.read(header);
+        if (readLen != header.length) {
+            throw new IOException("Read header from base stream failed");
+        }
+        for (int i = 0; i < header.length; ++i) {
+            header[i] ^= key.cryptByte();
+            key.update(header[i]);
         }
     }
 }

@@ -22,9 +22,9 @@ public class GsZipEntry {
     }
 
     private final int index;
-    private final @NonNull GsZipEntryHeader header;
-    private final @NonNull String name;
-    private final @NonNull Date time;
+    private final GsZipEntryHeader header;
+    private final String name;
+    private final Date time;
 
     GsZipEntry(@NonNegative int index, @NonNull GsZipEntryHeader header, @NonNull Charset charset) {
         this.index = index;

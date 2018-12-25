@@ -2,20 +2,16 @@ package com.geansea.zip;
 
 import com.geansea.zip.util.GsZipCentralDirEnd;
 import com.geansea.zip.util.GsZipEntryHeader;
-import com.geansea.zip.util.GsZipSubStream;
 
 import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.zip.Inflater;
-import java.util.zip.InflaterInputStream;
 
 public class GsZipFile {
     private final @NonNull String name;
@@ -69,20 +65,21 @@ public class GsZipFile {
         return entryList.get(index);
     }
 
-    public @NonNull InputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException, GsZipException {
+    public @Nullable GsZipInputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException, GsZipException {
         GsZipEntry entry = getEntry(index);
         if (!entry.isFile()) {
-            return new ByteArrayInputStream(new byte[0]);
+            return null;
         }
         synchronized (this) {
-            GsZipSubStream subStream = new GsZipSubStream(file, entry.getLocalOffset());
             GsZipEntryHeader localHeader = new GsZipEntryHeader();
-            localHeader.readFrom(subStream, false);
+            GsZipInputStream entryStream = new SubStream(file, entry.getLocalOffset());
+            localHeader.readFrom(entryStream, false);
             GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
             GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
-            subStream.resetSize(entry.getCompressedSize());
 
-            InputStream decryptStream = null;
+            long offset = entry.getLocalOffset() + localHeader.byteSize(false);
+            GsZipInputStream subStream = new SubStream(file, offset, offset + localHeader.getCompSize());
+            GsZipInputStream decryptStream = null;
             if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
                 decryptStream = subStream;
             } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
@@ -90,16 +87,16 @@ public class GsZipFile {
                 byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
                 byte timeCheck = entry.getTimeCheck();
                 byte crcCheck = entry.getCrcCheck();
-                decryptStream = new GsZipPKWareDecryptStream(subStream, pwBytes, timeCheck, crcCheck);
+                decryptStream = new PKWareDecryptStream(subStream, pwBytes, timeCheck, crcCheck);
             } else {
                 throw new IOException("Not supported encrypt method");
             }
 
-            InputStream uncompStream = null;
+            GsZipInputStream uncompStream = null;
             if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
                 uncompStream = decryptStream;
             } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
-                uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
+                //uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
             } else {
                 throw new IOException("Not supported compress method");
             }
@@ -150,7 +147,7 @@ public class GsZipFile {
     private void readCentralDir(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException, GsZipException {
         int dirOffset = dirEnd.getDirOffset();
         int dirSize = dirEnd.getDirSize();
-        GsZipSubStream rafStream = new GsZipSubStream(file, dirOffset, dirOffset + dirSize);
+        SubStream rafStream = new SubStream(file, dirOffset, dirOffset + dirSize);
 
         int entryCount = dirEnd.getEntryCount();
         entryList.ensureCapacity(entryCount);

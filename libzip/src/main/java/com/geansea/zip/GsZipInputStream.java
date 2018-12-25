@@ -1,7 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.GTENegativeOne;
-
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -9,18 +8,10 @@ import java.io.InputStream;
  */
 public abstract class GsZipInputStream extends InputStream {
     /**
-     * Get the length of stream.
-     * @return the length, -1 if unknown
-     */
-    public @GTENegativeOne long getLength() {
-        return -1;
-    }
-
-    /**
      * Reset the stream to the start.
-     * @throws GsZipException if not supporteds
+     * @throws IOException if not supported or
      */
-    public void restart() throws GsZipException {
-        throw new GsZipException("Restart is not supported");
+    public void restart() throws IOException {
+        throw new IOException("Restart is not supported");
     }
 }

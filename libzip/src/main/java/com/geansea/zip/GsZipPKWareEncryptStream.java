@@ -1,7 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.GsZipPKWareKey;
-
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -13,7 +11,7 @@ public class GsZipPKWareEncryptStream extends InputStream {
     private static final int HEADER_LEN = 12;
 
     private final InputStream base;
-    private final GsZipPKWareKey key;
+    private final PKWareKey key;
     private final byte[] header;
     private int headerPos;
 
@@ -21,7 +19,7 @@ public class GsZipPKWareEncryptStream extends InputStream {
                                     byte @NonNull [] password,
                                     byte checkByte) throws IllegalArgumentException {
         this.base = base;
-        key = new GsZipPKWareKey();
+        key = new PKWareKey();
         header = new byte[HEADER_LEN];
         headerPos = 0;
         // Update key with password

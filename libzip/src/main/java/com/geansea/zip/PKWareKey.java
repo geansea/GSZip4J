@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-final class GsZipPKWareKey {
+final class PKWareKey {
     private static final int KEY0 = 0x12345678;
     private static final int KEY1 = 0x23456789;
     private static final int KEY2 = 0x34567890;
@@ -26,7 +26,7 @@ final class GsZipPKWareKey {
     private int key1;
     private int key2;
 
-    GsZipPKWareKey() {
+    PKWareKey() {
         reset();
     }
 
