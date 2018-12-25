@@ -1,4 +1,4 @@
-package com.geansea.zip.util;
+package com.geansea.zip;
 
 public class GsZipException extends Exception {
     public GsZipException(String message) {

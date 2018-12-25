@@ -1,7 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipUtil;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.junit.Test;
 

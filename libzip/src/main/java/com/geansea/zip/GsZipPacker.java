@@ -3,8 +3,6 @@ package com.geansea.zip;
 import com.geansea.zip.util.GsZipCentralDirEnd;
 import com.geansea.zip.util.GsZipEntryHeader;
 import com.geansea.zip.util.GsZipPKWareEncryptStream;
-import com.geansea.zip.util.GsZipUtil;
-import com.google.common.base.Preconditions;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -40,20 +38,20 @@ public class GsZipPacker {
     public boolean addFile(@NonNull String entryName, @NonNull String fileName) {
         try {
             entryName = GsZipUtil.getCanonicalPath(entryName);
-            Preconditions.checkState(!entryName.isEmpty(), "Empty entry name");
-            Preconditions.checkState(new File(fileName).isFile(), "Invalid file name");
+            GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
+            GsZipUtil.check(new File(fileName).isFile(), "Invalid file name");
 
-            Preconditions.checkState(!entries.containsKey(entryName), "Already has entry");
+            GsZipUtil.check(!entries.containsKey(entryName), "Already has entry");
             String parentName = GsZipUtil.getParentPath(entryName);
             if (!parentName.isEmpty()) {
-                Preconditions.checkState(addFolder(parentName), "Add parent folder fail");
+                GsZipUtil.check(addFolder(parentName), "Add parent folder fail");
             }
 
             EntryInfo info = new EntryInfo(entryName, fileName);
             entryList.add(info);
             entries.put(entryName, fileName);
             return true;
-        } catch (IllegalStateException e) {
+        } catch (GsZipException e) {
             e.printStackTrace();
             return false;
         }
@@ -62,24 +60,24 @@ public class GsZipPacker {
     public boolean addFolder(@NonNull String entryName) {
         try {
             entryName = GsZipUtil.getCanonicalPath(entryName);
-            Preconditions.checkState(!entryName.isEmpty(), "Empty entry name");
+            GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
 
             if (entries.containsKey(entryName)) {
                 // Folder already added
-                Preconditions.checkState(entries.get(entryName).isEmpty(), "Same name with file");
+                GsZipUtil.check(entries.get(entryName).isEmpty(), "Same name with file");
                 return true;
             }
 
             String parentName = GsZipUtil.getParentPath(entryName);
             if (!parentName.isEmpty()) {
-                Preconditions.checkState(addFolder(parentName), "Add parent folder fail");
+                GsZipUtil.check(addFolder(parentName), "Add parent folder fail");
             }
 
             EntryInfo info = new EntryInfo(entryName + "/", "");
             entryList.add(info);
             entries.put(entryName, "");
             return true;
-        } catch (IllegalStateException e) {
+        } catch (GsZipException e) {
             e.printStackTrace();
             return false;
         }
@@ -88,10 +86,10 @@ public class GsZipPacker {
     public boolean packTo(@NonNull String filePath, @NonNull String password) {
         try {
             File file = new File(filePath);
-            Preconditions.checkState(!file.exists(), "File already exist");
+            GsZipUtil.check(!file.exists(), "File already exist");
             FileOutputStream stream = new FileOutputStream(file);
             return packTo(stream, password);
-        } catch (IOException e) {
+        } catch (IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }

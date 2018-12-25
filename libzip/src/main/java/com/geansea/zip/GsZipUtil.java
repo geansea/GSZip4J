@@ -1,4 +1,4 @@
-package com.geansea.zip.util;
+package com.geansea.zip;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.Stack;
 import java.util.zip.CRC32;
 
-public class GsZipUtil {
+public final class GsZipUtil {
     /**
      * Check the state and throw exception if not true
      * @param state the state to check
