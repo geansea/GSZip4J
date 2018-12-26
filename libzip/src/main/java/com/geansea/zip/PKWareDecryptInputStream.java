@@ -5,7 +5,7 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
 
-final class PKWareDecryptStream extends GsZipInputStream {
+final class PKWareDecryptInputStream extends GsZipInputStream {
     private static final int HEADER_LEN = 12;
 
     private final GsZipInputStream base;
@@ -13,10 +13,10 @@ final class PKWareDecryptStream extends GsZipInputStream {
     private final PKWareKey key;
     private final byte[] header;
 
-    PKWareDecryptStream(@NonNull GsZipInputStream base,
-                        byte @NonNull [] password,
-                        byte timeCheck,
-                        byte crcCheck) throws IOException, GsZipException {
+    PKWareDecryptInputStream(@NonNull GsZipInputStream base,
+                             byte @NonNull [] password,
+                             byte timeCheck,
+                             byte crcCheck) throws IOException, GsZipException {
         this.base = base;
         this.password = password;
         key = new PKWareKey();

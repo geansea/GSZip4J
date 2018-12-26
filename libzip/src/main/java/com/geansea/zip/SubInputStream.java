@@ -10,15 +10,15 @@ import java.io.RandomAccessFile;
  * Sub-stream for random access file.
  * This is usually the base stream of GsZipInputStream.
  */
-final class SubStream extends GsZipInputStream {
+final class SubInputStream extends GsZipInputStream {
     private final RandomAccessFile file;
     private final long start;
     private final long end;
     private long offset;
 
-    SubStream(@NonNull RandomAccessFile file,
-              @NonNegative long start,
-              @NonNegative long end) throws IOException, GsZipException {
+    SubInputStream(@NonNull RandomAccessFile file,
+                   @NonNegative long start,
+                   @NonNegative long end) throws IOException, GsZipException {
         GsZipUtil.check(start <= end,
                 "Start position should br no greater than end position");
         GsZipUtil.check(end <= file.length(),
@@ -29,8 +29,8 @@ final class SubStream extends GsZipInputStream {
         restart();
     }
 
-    SubStream(@NonNull RandomAccessFile file,
-              @NonNegative long start) throws IOException, GsZipException {
+    SubInputStream(@NonNull RandomAccessFile file,
+                   @NonNegative long start) throws IOException, GsZipException {
         this(file, start, file.length());
     }
 

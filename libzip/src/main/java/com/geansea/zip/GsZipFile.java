@@ -69,13 +69,13 @@ public class GsZipFile {
         }
         synchronized (this) {
             GsZipEntryHeader localHeader = new GsZipEntryHeader();
-            GsZipInputStream entryStream = new SubStream(file, entry.getLocalOffset());
+            GsZipInputStream entryStream = new SubInputStream(file, entry.getLocalOffset());
             localHeader.readFrom(entryStream, false);
             GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
             GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
 
             long offset = entry.getLocalOffset() + localHeader.byteSize(false);
-            GsZipInputStream subStream = new SubStream(file, offset, offset + localHeader.getCompSize());
+            GsZipInputStream subStream = new SubInputStream(file, offset, offset + localHeader.getCompSize());
             GsZipInputStream decryptStream;
             if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
                 decryptStream = subStream;
@@ -84,7 +84,7 @@ public class GsZipFile {
                 byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
                 byte timeCheck = entry.getTimeCheck();
                 byte crcCheck = entry.getCrcCheck();
-                decryptStream = new PKWareDecryptStream(subStream, pwBytes, timeCheck, crcCheck);
+                decryptStream = new PKWareDecryptInputStream(subStream, pwBytes, timeCheck, crcCheck);
             } else {
                 throw new IOException("Not supported encrypt method");
             }
@@ -93,7 +93,7 @@ public class GsZipFile {
             if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
                 uncompressStream = decryptStream;
             } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
-                uncompressStream = new InflaterStream(decryptStream);
+                uncompressStream = new InflaterInputStream(decryptStream);
             } else {
                 throw new IOException("Not supported compress method");
             }
@@ -144,7 +144,7 @@ public class GsZipFile {
     private void readCentralDir(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException, GsZipException {
         int dirOffset = dirEnd.getDirOffset();
         int dirSize = dirEnd.getDirSize();
-        SubStream rafStream = new SubStream(file, dirOffset, dirOffset + dirSize);
+        SubInputStream rafStream = new SubInputStream(file, dirOffset, dirOffset + dirSize);
 
         int entryCount = dirEnd.getEntryCount();
         entryList.ensureCapacity(entryCount);
