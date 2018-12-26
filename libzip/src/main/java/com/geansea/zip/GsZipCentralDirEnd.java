@@ -1,4 +1,4 @@
-package com.geansea.zip.util;
+package com.geansea.zip;
 
 import com.geansea.zip.GsZipException;
 import com.geansea.zip.GsZipUtil;

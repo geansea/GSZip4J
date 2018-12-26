@@ -1,8 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipCentralDirEnd;
-import com.geansea.zip.util.GsZipEntryHeader;
-
 import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -65,10 +62,10 @@ public class GsZipFile {
         return entryList.get(index);
     }
 
-    public @Nullable GsZipInputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException, GsZipException {
+    public @NonNull GsZipInputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException, GsZipException {
         GsZipEntry entry = getEntry(index);
         if (!entry.isFile()) {
-            return null;
+            return new GsZipInputStream();
         }
         synchronized (this) {
             GsZipEntryHeader localHeader = new GsZipEntryHeader();
@@ -97,6 +94,7 @@ public class GsZipFile {
                 uncompStream = decryptStream;
             } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
                 //uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
+                uncompStream = new GsZipInputStream();
             } else {
                 throw new IOException("Not supported compress method");
             }

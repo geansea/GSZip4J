@@ -1,7 +1,4 @@
-package com.geansea.zip.util;
-
-import com.geansea.zip.GsZipException;
-import com.geansea.zip.GsZipUtil;
+package com.geansea.zip;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 

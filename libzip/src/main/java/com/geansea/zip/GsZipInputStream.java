@@ -6,7 +6,12 @@ import java.io.InputStream;
 /**
  * Sub-class of InputStream to add some useful methods.
  */
-public abstract class GsZipInputStream extends InputStream {
+public class GsZipInputStream extends InputStream {
+    @Override
+    public int read() throws IOException {
+        return -1;
+    }
+
     /**
      * Reset the stream to the start.
      * @throws IOException if not supported or

@@ -1,7 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipEntryHeader;
-
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 

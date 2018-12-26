@@ -1,8 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.util.GsZipCentralDirEnd;
-import com.geansea.zip.util.GsZipEntryHeader;
-
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.BufferedInputStream;
