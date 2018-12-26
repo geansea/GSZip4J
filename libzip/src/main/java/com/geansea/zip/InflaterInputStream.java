@@ -8,8 +8,6 @@ import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 final class InflaterInputStream extends GsZipInputStream {
-    private static final int BUFFER_SIZE = 1024;
-
     private final GsZipInputStream base;
     private final Inflater inflater;
     private final byte[] inputBuffer;
@@ -18,7 +16,7 @@ final class InflaterInputStream extends GsZipInputStream {
     InflaterInputStream(@NonNull GsZipInputStream base) throws IOException {
         this.base = base;
         inflater = new Inflater(true);
-        inputBuffer = new byte[BUFFER_SIZE];
+        inputBuffer = new byte[GsZipUtil.BUFFER_SIZE];
         restart();
     }
 

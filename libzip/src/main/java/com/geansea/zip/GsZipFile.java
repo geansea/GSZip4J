@@ -1,5 +1,6 @@
 package com.geansea.zip;
 
+import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
@@ -58,7 +59,8 @@ public class GsZipFile {
         return comment;
     }
 
-    public @NonNull GsZipEntry getEntry(int index) throws IndexOutOfBoundsException {
+    public @NonNull GsZipEntry getEntry(@NonNegative int index) throws GsZipException {
+        GsZipUtil.check(index < entryList.size(), "");
         return entryList.get(index);
     }
 
@@ -107,7 +109,7 @@ public class GsZipFile {
         return ((node != null) ? node.getEntry() : null);
     }
 
-    public @Nullable InputStream getInputStream(String path) throws IOException, GsZipException {
+    public @Nullable GsZipInputStream getInputStream(String path) throws IOException, GsZipException {
         GsZipEntry entry = getEntry(path);
         return ((entry != null) ? getInputStream(entry.getIndex()) : null);
     }

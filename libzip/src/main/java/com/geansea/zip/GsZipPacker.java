@@ -110,8 +110,9 @@ public class GsZipPacker {
                 InputStream entryStream = new FileInputStream(info.path);
                 entryStream = new BufferedInputStream(entryStream);
                 entryStream.mark(Integer.MAX_VALUE);
+                int crc = GsZipUtil.getStreamCRC(entryStream);
                 int origLength = GsZipUtil.getStreamLength(entryStream);
-                header.setCRC(GsZipUtil.getStreamCRC(entryStream));
+                header.setCRC(crc);
                 header.setCompSize(origLength);
                 header.setUncompSize(origLength);
 

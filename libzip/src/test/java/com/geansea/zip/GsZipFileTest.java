@@ -29,12 +29,11 @@ public class GsZipFileTest {
             assertTrue(entry.isCompressed());
         }
 
-        InputStream stream = zip.getInputStream(name);
+        GsZipInputStream stream = zip.getInputStream(name);
         assertNotNull(stream);
-        stream = new BufferedInputStream(stream);
-        stream.mark(Integer.MAX_VALUE);
-        assertEquals(size, GsZipUtil.getStreamLength(stream));
-        assertEquals(entry.getCRC(), GsZipUtil.getStreamCRC(stream));
+        assertEquals(size, GsZipUtil.calcStreamLength(stream));
+        assertEquals(entry.getCRC(), GsZipUtil.calcStreamCRC(stream));
+        stream.close();
     }
 
     static void openCheck(@NonNull String path, @NonNull String password) throws Exception {
