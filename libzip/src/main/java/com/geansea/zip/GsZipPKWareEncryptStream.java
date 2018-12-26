@@ -48,45 +48,32 @@ public class GsZipPKWareEncryptStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        if (headerPos < header.length) {
-            return header[headerPos++];
-        }
-        int value = base.read();
-        if (value >= 0) {
-            byte c = (byte) value;
-            value ^= key.cryptByte();
-            key.update(c);
-            return value;
-        } else {
-            return -1;
-        }
+        byte[] buffer = new byte[1];
+        int count = read(buffer);
+        return (count > 0 ? Byte.toUnsignedInt(buffer[0]) : -1);
     }
 
     @Override
-    public int read(byte @NonNull [] buffer,
-                    @NonNegative int byteOffset,
-                    @NonNegative int byteCount) throws IOException {
-        int headerCount = 0;
+    public int read(byte @NonNull [] b,
+                    @NonNegative int off,
+                    @NonNegative int len) throws IOException {
+        if (len == 0) {
+            return 0;
+        }
         if (headerPos < header.length) {
-            headerCount = Math.min(header.length - headerPos, byteCount);
-            System.arraycopy(header, headerPos, buffer, byteOffset, headerCount);
-            headerPos += headerCount;
+            int count = Math.min(header.length - headerPos, len);
+            System.arraycopy(header, headerPos, b, off, count);
+            headerPos += count;
+            return count;
         }
-        if (headerCount >= byteCount) {
-            return headerCount;
-        }
-        int count = base.read(buffer, byteOffset + headerCount, byteCount - headerCount);
-        if (count >= 0) {
-            for (int i = byteOffset; i < byteOffset + count; ++i) {
-                byte c = buffer[i];
-                buffer[i] ^= key.cryptByte();
+        int count = base.read(b, off, len);
+        if (count > 0) {
+            for (int i = off; i < off + count; ++i) {
+                byte c = b[i];
+                b[i] ^= key.cryptByte();
                 key.update(c);
             }
-            return headerCount + count;
-        } else if (headerCount > 0) {
-            return headerCount;
-        } else {
-            return -1;
         }
+        return count;
     }
 }

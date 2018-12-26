@@ -47,29 +47,26 @@ final class InflaterInputStream extends GsZipInputStream {
         if (inflater.finished()) {
             return -1;
         }
-        try {
-            int count = 0;
-            while (count < len) {
-                int n = inflater.inflate(b, off + count, len - count);
-                if (n == 0) {
-                    if (inflater.finished()) {
-                        break;
-                    }
-                    if (inflater.needsDictionary()) {
-                        count = -1;
-                        break;
-                    }
-                    if (inflater.needsInput()) {
-                        fillInput();
-                    }
-                }
-                count += n;
+        int count = 0;
+        while (count == 0) {
+            if (inflater.finished()) {
+                break;
             }
-            return count;
-        } catch (DataFormatException e) {
-            String message = e.getMessage();
-            throw new IOException(message != null ? message : "Invalid ZLib data format");
+            if (inflater.needsDictionary()) {
+                count = -1;
+                break;
+            }
+            if (inflater.needsInput()) {
+                fillInput();
+            }
+            try {
+                count = inflater.inflate(b, off, len);
+            } catch (DataFormatException e) {
+                String message = e.getMessage();
+                throw new IOException(message != null ? message : "Invalid ZLib data format");
+            }
         }
+        return count;
     }
 
     @Override

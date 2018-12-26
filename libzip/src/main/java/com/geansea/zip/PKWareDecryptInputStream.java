@@ -53,15 +53,13 @@ final class PKWareDecryptInputStream extends GsZipInputStream {
                     @NonNegative int len) throws IOException {
         ensureOpen();
         int count = base.read(b, off, len);
-        if (count >= 0) {
+        if (count > 0) {
             for (int i = off; i < off + count; ++i) {
                 b[i] ^= key.cryptByte();
                 key.update(b[i]);
             }
-            return count;
-        } else {
-            return -1;
         }
+        return count;
     }
 
     @Override

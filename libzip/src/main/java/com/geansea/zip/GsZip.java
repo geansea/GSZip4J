@@ -85,7 +85,6 @@ public class GsZip {
             GsZipUtil.check(packer.packTo(zipPath, password), "Pack fail");
             return true;
         } catch (GsZipException e) {
-            e.printStackTrace();
             return false;
         }
     }
