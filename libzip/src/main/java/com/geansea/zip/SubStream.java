@@ -35,31 +35,34 @@ final class SubStream extends GsZipInputStream {
     }
 
     @Override
-    public int available() {
+    public int available() throws IOException {
+        ensureOpen();
         return (offset < end ? 1 : 0);
     }
 
     @Override
     public int read() throws IOException {
+        ensureOpen();
         byte[] buffer = new byte[1];
         int count = read(buffer);
-        return (count > 0 ? buffer[0] : -1);
+        return (count > 0 ? Byte.toUnsignedInt(buffer[0]) : -1);
     }
 
     @Override
-    public int read(byte @NonNull [] buffer,
-                    @NonNegative int byteOffset,
-                    @NonNegative int byteCount) throws IOException {
-        if (byteCount == 0) {
+    public int read(byte @NonNull [] b,
+                    @NonNegative int off,
+                    @NonNegative int len) throws IOException {
+        ensureOpen();
+        if (len == 0) {
             return 0;
         }
         if (offset >= end) {
             return -1;
         }
-        int count = Math.min(byteCount, (int) (end - offset));
+        int count = Math.min(len, (int) (end - offset));
         synchronized (file) {
             file.seek(offset);
-            count = file.read(buffer, byteOffset, count);
+            count = file.read(b, off, count);
         }
         if (count > 0) {
             offset += count;
@@ -70,7 +73,8 @@ final class SubStream extends GsZipInputStream {
     }
 
     @Override
-    public void restart() {
+    public void restart() throws IOException {
+        ensureOpen();
         offset = start;
     }
 }

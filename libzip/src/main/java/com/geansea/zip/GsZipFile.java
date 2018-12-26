@@ -76,7 +76,7 @@ public class GsZipFile {
 
             long offset = entry.getLocalOffset() + localHeader.byteSize(false);
             GsZipInputStream subStream = new SubStream(file, offset, offset + localHeader.getCompSize());
-            GsZipInputStream decryptStream = null;
+            GsZipInputStream decryptStream;
             if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
                 decryptStream = subStream;
             } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
@@ -89,17 +89,16 @@ public class GsZipFile {
                 throw new IOException("Not supported encrypt method");
             }
 
-            GsZipInputStream uncompStream = null;
+            GsZipInputStream uncompressStream;
             if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
-                uncompStream = decryptStream;
+                uncompressStream = decryptStream;
             } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
-                //uncompStream = new InflaterInputStream(decryptStream, new Inflater(true));
-                uncompStream = new GsZipInputStream();
+                uncompressStream = new InflaterStream(decryptStream);
             } else {
                 throw new IOException("Not supported compress method");
             }
 
-            return uncompStream;
+            return uncompressStream;
         }
     }
 

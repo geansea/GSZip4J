@@ -8,7 +8,7 @@ import java.io.IOException;
 final class PKWareDecryptStream extends GsZipInputStream {
     private static final int HEADER_LEN = 12;
 
-    private final @NonNull GsZipInputStream base;
+    private final GsZipInputStream base;
     private final byte[] password;
     private final PKWareKey key;
     private final byte[] header;
@@ -29,31 +29,34 @@ final class PKWareDecryptStream extends GsZipInputStream {
 
     @Override
     public int available() throws IOException {
+        ensureOpen();
         return base.available();
     }
 
     @Override
     public int read() throws IOException {
+        ensureOpen();
         int value = base.read();
         if (value >= 0) {
             byte c = (byte) value;
             c ^= key.cryptByte();
             key.update(c);
-            return c;
+            return Byte.toUnsignedInt(c);
         } else {
             return -1;
         }
     }
 
     @Override
-    public int read(byte @NonNull [] buffer,
-                    @NonNegative int byteOffset,
-                    @NonNegative int byteCount) throws IOException {
-        int count = base.read(buffer, byteOffset, byteCount);
+    public int read(byte @NonNull [] b,
+                    @NonNegative int off,
+                    @NonNegative int len) throws IOException {
+        ensureOpen();
+        int count = base.read(b, off, len);
         if (count >= 0) {
-            for (int i = byteOffset; i < byteOffset + count; ++i) {
-                buffer[i] ^= key.cryptByte();
-                key.update(buffer[i]);
+            for (int i = off; i < off + count; ++i) {
+                b[i] ^= key.cryptByte();
+                key.update(b[i]);
             }
             return count;
         } else {
@@ -62,7 +65,14 @@ final class PKWareDecryptStream extends GsZipInputStream {
     }
 
     @Override
+    public void close() throws IOException {
+        base.close();
+        super.close();
+    }
+
+    @Override
     public void restart() throws IOException {
+        ensureOpen();
         base.restart();
         key.reset();
         // Update key with password
