@@ -91,7 +91,7 @@ public class GsZipPacker {
         try {
             int streamOffset = 0;
             for (EntryInfo info : entryList) {
-                GsZipEntryHeader header = info.header;
+                EntryHeader header = info.header;
                 header.setSign(false);
                 header.setLocalOffset(streamOffset);
 
@@ -115,7 +115,7 @@ public class GsZipPacker {
                     GsZipInputStream compStream = new DeflaterInputStream(entryStream);
                     int compLength = GsZipUtil.calcStreamLength(compStream);
                     if (compLength < origLength) {
-                        header.setCompMethod(GsZipEntryHeader.COMPRESS_FLATE);
+                        header.setCompMethod(EntryHeader.COMPRESS_FLATE);
                         header.setCompSize(compLength);
                         entryStream = compStream;
                     }
@@ -127,7 +127,7 @@ public class GsZipPacker {
                     // byte crcCheck = header.getCrcCheck();
                     GsZipInputStream encStream = new PKWareEncryptInputStream(entryStream, pwBytes, timeCheck);
                     int encLength = GsZipUtil.calcStreamLength(encStream);
-                    header.setEncMethod(GsZipEntryHeader.ENCRYPT_PKWARE);
+                    header.setEncMethod(EntryHeader.ENCRYPT_PKWARE);
                     header.setCompSize(encLength);
                     entryStream = encStream;
                 }
@@ -147,7 +147,7 @@ public class GsZipPacker {
 
             int dirSize = 0;
             for (EntryInfo info : entryList) {
-                GsZipEntryHeader header = info.header;
+                EntryHeader header = info.header;
                 header.setSign(true);
                 header.writeTo(stream, true);
                 dirSize += header.byteSize(true);
@@ -172,12 +172,12 @@ public class GsZipPacker {
     private static class EntryInfo {
         final @NonNull String name;
         final @NonNull String path;
-        final @NonNull GsZipEntryHeader header;
+        final @NonNull EntryHeader header;
 
         EntryInfo(@NonNull String entryName, @NonNull String fileName) {
             name = entryName;
             path = fileName;
-            header = new GsZipEntryHeader();
+            header = new EntryHeader();
             header.setFileName(entryName);
             if (!path.isEmpty()) {
                 long lastModTime = new File(fileName).lastModified();

@@ -80,7 +80,7 @@ public class GsZipFile {
         synchronized (this) {
             try {
                 GsZipInputStream entryStream = new SubInputStream(file, entry.getLocalOffset());
-                GsZipEntryHeader localHeader = new GsZipEntryHeader();
+                EntryHeader localHeader = new EntryHeader();
                 localHeader.readFrom(entryStream, false);
                 GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
                 GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
@@ -163,7 +163,7 @@ public class GsZipFile {
         int entryCount = dirEnd.getEntryCount();
         entryList.ensureCapacity(entryCount);
         for (int i = 0; i < entryCount; ++i) {
-            GsZipEntryHeader header = new GsZipEntryHeader();
+            EntryHeader header = new EntryHeader();
             header.readFrom(rafStream, true);
 
             GsZipEntry entry = new GsZipEntry(i, header, StandardCharsets.UTF_8);

@@ -20,11 +20,11 @@ public class GsZipEntry {
     }
 
     private final int index;
-    private final GsZipEntryHeader header;
+    private final EntryHeader header;
     private final String name;
     private final Date time;
 
-    GsZipEntry(@NonNegative int index, @NonNull GsZipEntryHeader header, @NonNull Charset charset) {
+    GsZipEntry(@NonNegative int index, @NonNull EntryHeader header, @NonNull Charset charset) {
         this.index = index;
         this.header = header;
         name = header.getFileName(charset);
@@ -49,9 +49,9 @@ public class GsZipEntry {
 
     EncryptMethod getEncryptMethod() {
         switch (header.getEncMethod()) {
-            case GsZipEntryHeader.ENCRYPT_NONE:
+            case EntryHeader.ENCRYPT_NONE:
                 return EncryptMethod.NONE;
-            case GsZipEntryHeader.ENCRYPT_PKWARE:
+            case EntryHeader.ENCRYPT_PKWARE:
                 return EncryptMethod.PKWARE;
             default:
                 return EncryptMethod.NONSUPPORT;
@@ -64,9 +64,9 @@ public class GsZipEntry {
 
     CompressMethod getCompressMethod() {
         switch (header.getCompMethod()) {
-            case GsZipEntryHeader.COMPRESS_STORED:
+            case EntryHeader.COMPRESS_STORED:
                 return CompressMethod.STORED;
-            case GsZipEntryHeader.COMPRESS_FLATE:
+            case EntryHeader.COMPRESS_FLATE:
                 return CompressMethod.FLATE;
             default:
                 return CompressMethod.NONSUPPORT;

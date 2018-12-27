@@ -15,7 +15,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.zip.CRC32;
 
-public class GsZipEntryHeader {
+final class EntryHeader {
     private static final int CENTRAL_MAGIC = 0x02014b50; // "PK\x01\x02"
     private static final int LOCAL_MAGIC = 0x04034b50; // "PK\x03\x04"
 
@@ -58,7 +58,7 @@ public class GsZipEntryHeader {
     private byte[] extraField;
     private byte[] comment;
 
-    public GsZipEntryHeader() {
+    public EntryHeader() {
         sign = CENTRAL_MAGIC;
         versionMadeBy = 0x0014;
         versionNeeded = 0x0014;
@@ -92,7 +92,7 @@ public class GsZipEntryHeader {
         GsZipUtil.check(compMethod == COMPRESS_STORED || compMethod == COMPRESS_FLATE, "Error compress method");
     }
 
-    public boolean matchLocal(@NonNull GsZipEntryHeader header) {
+    public boolean matchLocal(@NonNull EntryHeader header) {
         boolean match = (compMethod == header.compMethod
                 && (bitFlags & BITFLAG_ENCRYPT_MASK) == (header.bitFlags & BITFLAG_ENCRYPT_MASK)
                 && fileNameLen == header.fileNameLen
