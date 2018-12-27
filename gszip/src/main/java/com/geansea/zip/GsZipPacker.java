@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -18,17 +19,24 @@ public class GsZipPacker {
     @NonNull
     private final LinkedHashMap<String, String> entries;
     @NonNull
+    private Charset defaultCharset;
+    @NonNull
     private String comment;
 
     public GsZipPacker() {
         entryList = new LinkedList<>();
         entries = new LinkedHashMap<>();
+        defaultCharset = StandardCharsets.UTF_8;
         comment = "";
+    }
+
+    public void setDefaultCharset(@NonNull Charset defaultCharset) {
+        this.defaultCharset = defaultCharset;
     }
 
     public boolean addFile(@NonNull String entryName, @NonNull String fileName) {
         try {
-            entryName = GsZipUtil.getCanonicalPath(entryName);
+            entryName = GsZipUtil.normalizePath(entryName);
             GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
             GsZipUtil.check(new File(fileName).isFile(), "Invalid file name");
 
@@ -50,7 +58,7 @@ public class GsZipPacker {
 
     public boolean addFolder(@NonNull String entryName) {
         try {
-            entryName = GsZipUtil.getCanonicalPath(entryName);
+            entryName = GsZipUtil.normalizePath(entryName);
             GsZipUtil.check(!entryName.isEmpty(), "Empty entry name");
 
             if (entries.containsKey(entryName)) {
@@ -125,7 +133,7 @@ public class GsZipPacker {
                 }
 
                 if (!password.isEmpty()) {
-                    byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
+                    byte[] pwBytes = password.getBytes(defaultCharset);
                     byte timeCheck = header.getTimeCheck();
                     // byte crcCheck = header.getCrcCheck();
                     GsZipInputStream encStream = new PKWareEncryptInputStream(entryStream, pwBytes, timeCheck);
@@ -159,8 +167,7 @@ public class GsZipPacker {
             CentralDirEnd dirEnd = new CentralDirEnd();
             dirEnd.setEntryCount(entryList.size());
             dirEnd.setDirRange(streamOffset, dirSize);
-            dirEnd.setComment(comment, StandardCharsets.UTF_8);
-            dirEnd.setComment(comment, StandardCharsets.UTF_8);
+            dirEnd.setComment(comment, defaultCharset);
 
             byte[] endBytes = new byte[dirEnd.byteSize()];
             dirEnd.writeTo(endBytes);

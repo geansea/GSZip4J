@@ -84,32 +84,19 @@ final class GsZipUtil {
             }
             parts.push(part);
         }
-        return String.join("/", parts);
-    }
-
-    @NonNull
-    static String getCanonicalPath(@NonNull String path) {
-        Stack<String> parts = new Stack<>();
-        for (String part : path.split("[/\\\\]")) {
-            if (part.isEmpty()) {
-                continue;
+        StringBuilder builder = new StringBuilder();
+        if (parts.size() > 0) {
+            builder.append(parts.elementAt(0));
+            for (int i = 1; i < parts.size(); ++i) {
+                builder.append("/");
+                builder.append(parts.elementAt(i));
             }
-            if (part.equals(".")) {
-                continue;
-            }
-            if (part.equals("..")) {
-                if (!parts.isEmpty()) {
-                    parts.pop();
-                    continue;
-                }
-            }
-            parts.push(part);
         }
-        return String.join("/", parts);
+        return builder.toString();
     }
 
     @NonNull
-    public static String getParentPath(@NonNull String path) {
+    static String getParentPath(@NonNull String path) {
         int parentPos = path.indexOf("/");
         if (parentPos < 0) {
             return "";
