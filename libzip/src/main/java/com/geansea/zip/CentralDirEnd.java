@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-class GsZipCentralDirEnd {
+final class CentralDirEnd {
     static final int MAGIC = 0x06054b50; // "PK\x05\x06"
     static final int BASE_SIZE = 0x16;
 
@@ -21,7 +21,7 @@ class GsZipCentralDirEnd {
     private short commentLen;
     private byte[] comment;
 
-    GsZipCentralDirEnd() {
+    CentralDirEnd() {
         sign = MAGIC;
         diskNum = 0;
         startDiskNum = 0;

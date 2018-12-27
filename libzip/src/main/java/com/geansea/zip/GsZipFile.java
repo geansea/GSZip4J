@@ -5,7 +5,6 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -13,7 +12,7 @@ import java.util.ArrayList;
 
 public class GsZipFile {
     private final RandomAccessFile file;
-    private final GsZipCentralDirEnd dirEnd;
+    private final CentralDirEnd dirEnd;
     private final ArrayList<GsZipEntry> entryList;
     private final GsZipEntryNode entryTree;
     private @NonNull Charset defaultCharset;
@@ -33,7 +32,7 @@ public class GsZipFile {
 
     private GsZipFile(@NonNull String path) throws IOException {
         file = new RandomAccessFile(path, "r");
-        dirEnd = new GsZipCentralDirEnd();
+        dirEnd = new CentralDirEnd();
         entryList = new ArrayList<>();
         entryTree = new GsZipEntryNode(null, "");
         defaultCharset = StandardCharsets.UTF_8;
@@ -133,14 +132,14 @@ public class GsZipFile {
     }
 
     private void readCentralDirEnd() throws IOException, GsZipException {
-        long scanOffset = file.length() - GsZipCentralDirEnd.BASE_SIZE;
+        long scanOffset = file.length() - CentralDirEnd.BASE_SIZE;
         GsZipUtil.check(scanOffset >= 0, "File too short to be a zip file");
 
         long stopOffset = Math.max(scanOffset - 0xFFFF, 0);
         long dirEndOffset = -1;
         while (stopOffset <= scanOffset) {
             file.seek(scanOffset);
-            if (Integer.reverseBytes(file.readInt()) == GsZipCentralDirEnd.MAGIC) {
+            if (Integer.reverseBytes(file.readInt()) == CentralDirEnd.MAGIC) {
                 dirEndOffset = scanOffset;
                 break;
             }

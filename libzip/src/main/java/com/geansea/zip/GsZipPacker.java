@@ -2,11 +2,9 @@ package com.geansea.zip;
 
 import org.checkerframework.checker.nullness.qual.NonNull;
 
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
@@ -155,7 +153,7 @@ public class GsZipPacker {
                 dirSize += header.byteSize(true);
             }
 
-            GsZipCentralDirEnd dirEnd = new GsZipCentralDirEnd();
+            CentralDirEnd dirEnd = new CentralDirEnd();
             dirEnd.setEntryCount(entryList.size());
             dirEnd.setDirRange(streamOffset, dirSize);
             dirEnd.setComment(comment, StandardCharsets.UTF_8);
