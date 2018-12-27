@@ -1,7 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.nio.charset.Charset;
 import java.util.Date;
@@ -20,11 +19,14 @@ public class GsZipEntry {
     }
 
     private final int index;
-    private final EntryHeader header;
-    private final String name;
-    private final Date time;
+    private final @NonNull
+    EntryHeader header;
+    private final @NonNull
+    String name;
+    private final @NonNull
+    Date time;
 
-    GsZipEntry(@NonNegative int index, @NonNull EntryHeader header, @NonNull Charset charset) {
+    GsZipEntry(int index, @NonNull EntryHeader header, @NonNull Charset charset) {
         this.index = index;
         this.header = header;
         name = header.getFileName(charset);
@@ -39,7 +41,8 @@ public class GsZipEntry {
         return header.matchLocal(entry.header);
     }
 
-    public @NonNull String getName() {
+    public @NonNull
+    String getName() {
         return name;
     }
 
@@ -47,6 +50,7 @@ public class GsZipEntry {
         return !(name.endsWith("/") && header.getUncompSize() == 0);
     }
 
+    @NonNull
     EncryptMethod getEncryptMethod() {
         switch (header.getEncMethod()) {
             case EntryHeader.ENCRYPT_NONE:
@@ -62,6 +66,7 @@ public class GsZipEntry {
         return (getEncryptMethod() != EncryptMethod.NONE);
     }
 
+    @NonNull
     CompressMethod getCompressMethod() {
         switch (header.getCompMethod()) {
             case EntryHeader.COMPRESS_STORED:
@@ -77,7 +82,8 @@ public class GsZipEntry {
         return (getCompressMethod() != CompressMethod.STORED);
     }
 
-    public @NonNull Date getTime() {
+    @NonNull
+    public Date getTime() {
         return time;
     }
 

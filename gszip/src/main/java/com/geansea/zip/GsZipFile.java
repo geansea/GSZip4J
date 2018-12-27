@@ -1,8 +1,7 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
-import org.checkerframework.checker.nullness.qual.Nullable;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -11,14 +10,21 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class GsZipFile {
+    @NonNull
     private final RandomAccessFile file;
+    @NonNull
     private final CentralDirEnd dirEnd;
+    @NonNull
     private final ArrayList<GsZipEntry> entryList;
+    @NonNull
     private final GsZipEntryNode entryTree;
-    private @NonNull Charset defaultCharset;
-    private @NonNull String password;
+    @NonNull
+    private Charset defaultCharset;
+    @NonNull
+    private String password;
 
-    public static @NonNull GsZipFile create(@NonNull String path) throws GsZipException {
+    public static @NonNull
+    GsZipFile create(@NonNull String path) throws GsZipException {
         try {
             GsZipFile zip = new GsZipFile(path);
             zip.readCentralDirEnd();
@@ -62,17 +68,20 @@ public class GsZipFile {
         return entryList.size();
     }
 
-    public @NonNull String getComment() {
+    public @NonNull
+    String getComment() {
         return dirEnd.getComment(defaultCharset);
     }
 
-    public @NonNull GsZipEntry getEntry(@NonNegative int index) throws GsZipException {
+    public @NonNull
+    GsZipEntry getEntry(int index) throws GsZipException {
         GsZipUtil.check(index >= 0, "");
         GsZipUtil.check(index < entryList.size(), "");
         return entryList.get(index);
     }
 
-    public @NonNull GsZipInputStream getInputStream(@NonNegative int index) throws GsZipException {
+    public @NonNull
+    GsZipInputStream getInputStream(int index) throws GsZipException {
         GsZipEntry entry = getEntry(index);
         if (!entry.isFile()) {
             return new GsZipInputStream();
@@ -112,22 +121,25 @@ public class GsZipFile {
                 return uncompressStream;
             } catch (IOException e) {
                 String message = e.getMessage();
-                throw  new GsZipException(message != null ? message : "Get entry stream failed");
+                throw new GsZipException(message != null ? message : "Get entry stream failed");
             }
         }
     }
 
-    public @Nullable GsZipEntry getEntry(String path) {
+    @Nullable
+    public GsZipEntry getEntry(@NonNull String path) {
         GsZipEntryNode node = entryTree.getChildWithPath(path);
         return ((node != null) ? node.getEntry() : null);
     }
 
-    public @Nullable GsZipInputStream getInputStream(String path) throws IOException, GsZipException {
+    @Nullable
+    public GsZipInputStream getInputStream(@NonNull String path) throws GsZipException {
         GsZipEntry entry = getEntry(path);
         return ((entry != null) ? getInputStream(entry.getIndex()) : null);
     }
 
-    public @NonNull GsZipEntryNode getEntryTree() {
+    public @NonNull
+    GsZipEntryNode getEntryTree() {
         return entryTree;
     }
 

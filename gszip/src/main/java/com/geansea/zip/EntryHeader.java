@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.io.InputStream;

@@ -1,19 +1,17 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
+
 import org.junit.Test;
 
-import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.net.URL;
 
 import static org.junit.Assert.*;
 
 public class GsZipTest {
-    private static void folderCheck(@NonNull String path) throws Exception {
+    private static void folderCheck(@NonNull String path) {
         File file = new File(path);
         assertTrue(file.exists());
         assertTrue(file.isDirectory());

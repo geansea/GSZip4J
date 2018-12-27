@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.util.Stack;
@@ -19,7 +19,7 @@ final class GsZipUtil {
      * @param errorMessage the error message for exception
      * @throws GsZipException if state is false
      */
-    static void check(boolean state, String errorMessage) throws GsZipException {
+    static void check(boolean state, @NonNull String errorMessage) throws GsZipException {
         if (!state) {
             throw new GsZipException(errorMessage);
         }

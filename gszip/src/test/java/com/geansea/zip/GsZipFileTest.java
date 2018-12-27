@@ -1,9 +1,9 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
+
 import org.junit.Test;
 
-import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.net.URL;
 

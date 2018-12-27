@@ -1,11 +1,14 @@
 package com.geansea.zip;
 
+import android.support.annotation.NonNull;
+
 final class PKWareKey {
     private static final int KEY0 = 0x12345678;
     private static final int KEY1 = 0x23456789;
     private static final int KEY2 = 0x34567890;
     private static final int UPDATE = 134775813;
     private static final int CRC_POLY = 0xEDB88320;
+    @NonNull
     private static final int[] CRC_TABLE = new int[256];
 
     static {

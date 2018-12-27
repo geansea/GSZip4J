@@ -1,7 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -34,28 +33,29 @@ final class CentralDirEnd {
     }
 
     int getEntryCount() {
-        return Short.toUnsignedInt(entryNum);
+        return entryNum & 0xFFFF;
     }
 
-    void setEntryCount(@NonNegative int count) {
+    void setEntryCount(int count) {
         entryNum = (short) count;
         diskEntryNum = entryNum;
     }
 
     long getDirOffset() {
-        return Integer.toUnsignedLong(dirOffset);
+        return ((long) dirOffset) & 0xFFFFFFFFL;
     }
 
     long getDirSize() {
-        return Integer.toUnsignedLong(dirSize);
+        return ((long) dirSize) & 0xFFFFFFFFL;
     }
 
-    void setDirRange(@NonNegative long offset, @NonNegative long size) {
+    void setDirRange(long offset,long size) {
         dirOffset = (int) offset;
         dirSize = (int) size;
     }
 
-    @NonNull String getComment(@NonNull Charset charset) {
+    @NonNull
+    String getComment(@NonNull Charset charset) {
         return new String(comment, charset);
     }
 
@@ -64,7 +64,7 @@ final class CentralDirEnd {
         commentLen = (short) comment.length;
     }
 
-    void readFrom(byte @NonNull [] bytes) throws GsZipException {
+    void readFrom(@NonNull byte[] bytes) throws GsZipException {
         GsZipUtil.check(bytes.length >= BASE_SIZE, "Not enough length");
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
@@ -90,7 +90,7 @@ final class CentralDirEnd {
         return BASE_SIZE + commentLen;
     }
 
-    void writeTo(byte @NonNull [] bytes) throws GsZipException {
+    void writeTo(@NonNull byte[] bytes) throws GsZipException {
         GsZipUtil.check(bytes.length >= byteSize(), "Not enough length");
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);

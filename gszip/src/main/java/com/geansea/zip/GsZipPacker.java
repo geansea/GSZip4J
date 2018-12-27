@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,18 +13,17 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 
 public class GsZipPacker {
-    private @NonNull String comment;
-    private @NonNull LinkedList<EntryInfo> entryList;
-    private @NonNull LinkedHashMap<String, String> entries;
+    @NonNull
+    private final LinkedList<EntryInfo> entryList;
+    @NonNull
+    private final LinkedHashMap<String, String> entries;
+    @NonNull
+    private String comment;
 
     public GsZipPacker() {
-        comment = "";
         entryList = new LinkedList<>();
         entries = new LinkedHashMap<>();
-    }
-
-    public void setComment(@NonNull String comment) {
-        this.comment = comment;
+        comment = "";
     }
 
     public boolean addFile(@NonNull String entryName, @NonNull String fileName) {
@@ -75,13 +74,17 @@ public class GsZipPacker {
         }
     }
 
+    public void setComment(@NonNull String comment) {
+        this.comment = comment;
+    }
+
     public boolean packTo(@NonNull String filePath, @NonNull String password) {
         try {
             File file = new File(filePath);
             GsZipUtil.check(!file.exists(), "File already exist");
             FileOutputStream stream = new FileOutputStream(file);
             return packTo(stream, password);
-        } catch (IOException | GsZipException e) {
+        } catch (@NonNull IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }
@@ -163,16 +166,19 @@ public class GsZipPacker {
             dirEnd.writeTo(endBytes);
             stream.write(endBytes);
             return true;
-        } catch (IOException | GsZipException e) {
+        } catch (@NonNull IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }
     }
 
     private static class EntryInfo {
-        final @NonNull String name;
-        final @NonNull String path;
-        final @NonNull EntryHeader header;
+        final @NonNull
+        String name;
+        final @NonNull
+        String path;
+        final @NonNull
+        EntryHeader header;
 
         EntryInfo(@NonNull String entryName, @NonNull String fileName) {
             name = entryName;

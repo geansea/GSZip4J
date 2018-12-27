@@ -1,7 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -11,14 +10,13 @@ import java.io.RandomAccessFile;
  * This is usually the base stream of GsZipInputStream.
  */
 final class SubInputStream extends GsZipInputStream {
+    @NonNull
     private final RandomAccessFile file;
     private final long start;
     private final long end;
     private long offset;
 
-    SubInputStream(@NonNull RandomAccessFile file,
-                   @NonNegative long start,
-                   @NonNegative long end) throws IOException, GsZipException {
+    SubInputStream(@NonNull RandomAccessFile file, long start, long end) throws IOException, GsZipException {
         GsZipUtil.check(start <= end,
                 "Start position should br no greater than end position");
         GsZipUtil.check(end <= file.length(),
@@ -29,8 +27,7 @@ final class SubInputStream extends GsZipInputStream {
         restart();
     }
 
-    SubInputStream(@NonNull RandomAccessFile file,
-                   @NonNegative long start) throws IOException, GsZipException {
+    SubInputStream(@NonNull RandomAccessFile file, long start) throws IOException, GsZipException {
         this(file, start, file.length());
     }
 
@@ -45,13 +42,11 @@ final class SubInputStream extends GsZipInputStream {
         ensureOpen();
         byte[] buffer = new byte[1];
         int count = read(buffer);
-        return (count > 0 ? Byte.toUnsignedInt(buffer[0]) : -1);
+        return count > 0 ? (buffer[0] & 0xFF) : -1;
     }
 
     @Override
-    public int read(byte @NonNull [] b,
-                    @NonNegative int off,
-                    @NonNegative int len) throws IOException {
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
         ensureOpen();
         if (len == 0) {
             return 0;

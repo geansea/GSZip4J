@@ -1,15 +1,17 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 import java.util.zip.DataFormatException;
 import java.util.zip.Inflater;
 
 final class InflaterInputStream extends GsZipInputStream {
+    @NonNull
     private final GsZipInputStream base;
+    @NonNull
     private final Inflater inflater;
+    @NonNull
     private final byte[] inputBuffer;
     private int inputLength;
 
@@ -31,13 +33,11 @@ final class InflaterInputStream extends GsZipInputStream {
         ensureOpen();
         byte[] buffer = new byte[1];
         int count = read(buffer);
-        return (count > 0 ? Byte.toUnsignedInt(buffer[0]) : -1);
+        return count > 0 ? (buffer[0] & 0xFF) : -1;
     }
 
     @Override
-    public int read(byte @NonNull [] b,
-                    @NonNegative int off,
-                    @NonNegative int len) throws IOException {
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
         ensureOpen();
         if (len == 0) {
             return 0;

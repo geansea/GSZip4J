@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -43,7 +43,7 @@ public class GsZip {
                 }
             }
             return true;
-        } catch (IOException | GsZipException e) {
+        } catch (@NonNull IOException | GsZipException e) {
             e.printStackTrace();
             return false;
         }

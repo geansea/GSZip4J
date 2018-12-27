@@ -1,20 +1,23 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 import java.io.IOException;
 
 final class PKWareDecryptInputStream extends GsZipInputStream {
     private static final int HEADER_LEN = 12;
 
+    @NonNull
     private final GsZipInputStream base;
+    @NonNull
     private final byte[] password;
+    @NonNull
     private final PKWareKey key;
+    @NonNull
     private final byte[] header;
 
     PKWareDecryptInputStream(@NonNull GsZipInputStream base,
-                             byte @NonNull [] password,
+                             @NonNull byte[] password,
                              byte timeCheck,
                              byte crcCheck) throws IOException, GsZipException {
         this.base = base;
@@ -42,9 +45,7 @@ final class PKWareDecryptInputStream extends GsZipInputStream {
     }
 
     @Override
-    public int read(byte @NonNull [] b,
-                    @NonNegative int off,
-                    @NonNegative int len) throws IOException {
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
         ensureOpen();
         int count = base.read(b, off, len);
         if (count > 0) {

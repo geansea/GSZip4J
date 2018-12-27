@@ -1,6 +1,6 @@
 package com.geansea.zip;
 
-import org.checkerframework.checker.nullness.qual.NonNull;
+import android.support.annotation.NonNull;
 
 public class GsZipException extends Exception {
     public GsZipException(@NonNull String message) {
