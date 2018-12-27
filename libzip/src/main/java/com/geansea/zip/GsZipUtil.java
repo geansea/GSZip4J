@@ -87,29 +87,6 @@ final class GsZipUtil {
         return String.join("/", parts);
     }
 
-    public static int getStreamCRC(@NonNull InputStream stream) throws IOException {
-        CRC32 crc32 = new CRC32();
-        stream.reset();
-        byte[] buffer = new byte[1024];
-        int count;
-        while ((count = stream.read(buffer)) > 0) {
-            crc32.update(buffer, 0, count);
-        }
-        stream.reset();
-        return (int) crc32.getValue();
-    }
-
-    public static int getStreamLength(@NonNull InputStream stream) throws IOException {
-        int length = 0;
-        stream.reset();
-        int count;
-        while ((count = (int) stream.skip(1024)) > 0) {
-            length += count;
-        }
-        stream.reset();
-        return length;
-    }
-
     static @NonNull String getCanonicalPath(@NonNull String path) {
         Stack<String> parts = new Stack<>();
         for (String part : path.split("[/\\\\]")) {

@@ -7,6 +7,7 @@ import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.io.RandomAccessFile;
 import java.net.URL;
 
 import static org.junit.Assert.*;
@@ -23,11 +24,9 @@ public class GsZipTest {
         assertTrue(file.exists());
         assertTrue(file.isFile());
 
-        InputStream stream = new FileInputStream(file);
-        stream = new BufferedInputStream(stream);
-        stream.mark(Integer.MAX_VALUE);
-        assertEquals(size, GsZipUtil.getStreamLength(stream));
-        assertEquals(crc, GsZipUtil.getStreamCRC(stream));
+        GsZipInputStream stream = new SubInputStream(new RandomAccessFile(path, "r"), 0);
+        assertEquals(size, GsZipUtil.calcStreamLength(stream));
+        assertEquals(crc, GsZipUtil.calcStreamCRC(stream));
     }
 
     @Test
