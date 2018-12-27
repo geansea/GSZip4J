@@ -18,14 +18,15 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.geansea.gszip.GsZipEntry;
-import com.geansea.gszip.GsZipEntryNode;
-import com.geansea.gszip.GsZipFile;
-import com.geansea.gszip.util.GsZipUtil;
+import com.geansea.zip.GsZipEntry;
+import com.geansea.zip.GsZipEntryNode;
+import com.geansea.zip.GsZipException;
+import com.geansea.zip.GsZipFile;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.zip.CRC32;
 
 public class UnzipActivity extends AppCompatActivity {
     private static final int FILE_SELECT_CODE = 12345;
@@ -39,8 +40,8 @@ public class UnzipActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_unzip);
 
-        Button openButton = (Button) findViewById(R.id.openButton);
-        entryListView = (ListView) findViewById(R.id.listView);
+        Button openButton = findViewById(R.id.openButton);
+        entryListView = findViewById(R.id.listView);
         zipFile = null;
 
         if (openButton != null) {
@@ -61,14 +62,16 @@ public class UnzipActivity extends AppCompatActivity {
         if (requestCode == FILE_SELECT_CODE && resultCode == Activity.RESULT_OK) {
             Uri uri = data.getData();
             String path = uri.getPath();
-            zipFile = GsZipFile.create(path);
-            if (zipFile != null) {
+            try {
+                zipFile = GsZipFile.create(path);
                 if (zipFile.needPassword()) {
                     zipFile.setPassword("geanseadex/move_photo");
                 }
                 folderNode = zipFile.getEntryTree();
                 entryListView.setAdapter(new ZipEntryAdapter(this, folderNode));
                 entryListView.setOnItemClickListener(new ZipEntryClickListener());
+            } catch (GsZipException e) {
+                e.printStackTrace();
             }
         }
         super.onActivityResult(requestCode, resultCode, data);
@@ -89,14 +92,12 @@ public class UnzipActivity extends AppCompatActivity {
         GsZipEntry entry = child.getEntry();
         if (child.isFile() && entry != null) {
             boolean crcMatched = false;
-            InputStream is = zipFile.getInputStream(entry.getIndex());
-            if (is != null) {
-                try {
-                    int crc = GsZipUtil.getStreamCRC(is);
-                    crcMatched = (crc == entry.getCRC());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                InputStream is = zipFile.getInputStream(entry.getIndex());
+                int crc = calcStreamCRC(is);
+                crcMatched = (crc == entry.getCRC());
+            } catch (GsZipException | IOException e) {
+                e.printStackTrace();
             }
             UnzipDialog dialog = new UnzipDialog(this, child, crcMatched);
             dialog.show();
@@ -104,6 +105,17 @@ public class UnzipActivity extends AppCompatActivity {
             folderNode = child;
             entryListView.setAdapter(new ZipEntryAdapter(this, folderNode));
         }
+    }
+
+    private static int calcStreamCRC(@NonNull InputStream is) throws IOException {
+        CRC32 crc32 = new CRC32();
+        byte[] buffer = new byte[1024];
+        int count;
+        while ((count = is.read(buffer)) > 0) {
+            crc32.update(buffer, 0, count);
+        }
+        return (int) crc32.getValue();
+
     }
 
     private class ZipEntryAdapter extends BaseAdapter {
@@ -145,8 +157,8 @@ public class UnzipActivity extends AppCompatActivity {
             if (convertView == null) {
                 convertView = layoutInflater.inflate(R.layout.list_unzip, parent, false);
                 holder = new ViewHolder();
-                holder.iconView = (ImageView) convertView.findViewById(R.id.icon);
-                holder.nameView = (TextView) convertView.findViewById(R.id.name);
+                holder.iconView = convertView.findViewById(R.id.icon);
+                holder.nameView = convertView.findViewById(R.id.name);
                 convertView.setTag(holder);
             } else {
                 holder = (ViewHolder)convertView.getTag();

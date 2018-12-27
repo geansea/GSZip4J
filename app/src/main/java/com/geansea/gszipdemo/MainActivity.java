@@ -13,12 +13,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        Button unzipButton = (Button) findViewById(R.id.unzipButton);
+        Button unzipButton = findViewById(R.id.unzipButton);
         if (unzipButton != null) {
             unzipButton.setOnClickListener(new JumpClickListener());
         }
 
-        Button zipButton = (Button) findViewById(R.id.zipButton);
+        Button zipButton = findViewById(R.id.zipButton);
         if (zipButton != null) {
             zipButton.setOnClickListener(new JumpClickListener());
         }

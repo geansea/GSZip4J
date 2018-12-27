@@ -9,8 +9,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.geansea.gszip.GsZipEntry;
-import com.geansea.gszip.GsZipEntryNode;
+import com.geansea.zip.GsZipEntry;
+import com.geansea.zip.GsZipEntryNode;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -31,10 +31,10 @@ class UnzipDialog extends Dialog {
                 ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT));
         setContentView(contentView);
 
-        TextView nameView = (TextView) contentView.findViewById(R.id.name);
-        TextView sizeView = (TextView) contentView.findViewById(R.id.size);
-        TextView crcView = (TextView) contentView.findViewById(R.id.crc);
-        TextView timeView = (TextView) contentView.findViewById(R.id.time);
+        TextView nameView = contentView.findViewById(R.id.name);
+        TextView sizeView = contentView.findViewById(R.id.size);
+        TextView crcView = contentView.findViewById(R.id.crc);
+        TextView timeView = contentView.findViewById(R.id.time);
 
         GsZipEntry entry = node.getEntry();
         if (entry != null) {

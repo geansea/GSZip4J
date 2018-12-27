@@ -21,8 +21,8 @@ public class ZipActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_zip);
 
-        packButton = (Button) findViewById(R.id.packButton);
-        editText = (EditText) findViewById(R.id.editText);
+        packButton = findViewById(R.id.packButton);
+        editText = findViewById(R.id.editText);
 
         packButton.setOnClickListener(new View.OnClickListener() {
             @Override
