@@ -37,7 +37,7 @@ public class GsZipFileTest {
     }
 
     static void openCheck(@NonNull String path, @NonNull String password) throws Exception {
-        GsZipFile zip = new GsZipFile(path);
+        GsZipFile zip = GsZipFile.create(path);
         assertEquals(5, zip.size());
 
         if (password.isEmpty()) {
@@ -95,7 +95,7 @@ public class GsZipFileTest {
     public void open_cjk() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         URL fileUrl = classLoader.getResource("cjk_winrar.zip");
-        GsZipFile zip = new GsZipFile(fileUrl.getFile());
+        GsZipFile zip = GsZipFile.create(fileUrl.getFile());
         assertEquals(9, zip.size());
         assertFalse(zip.needPassword());
 

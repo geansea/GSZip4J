@@ -36,15 +36,9 @@ final class PKWareDecryptInputStream extends GsZipInputStream {
     @Override
     public int read() throws IOException {
         ensureOpen();
-        int value = base.read();
-        if (value >= 0) {
-            byte c = (byte) value;
-            c ^= key.cryptByte();
-            key.update(c);
-            return Byte.toUnsignedInt(c);
-        } else {
-            return -1;
-        }
+        byte[] buffer = new byte[1];
+        int count = read(buffer);
+        return count > 0 ? (buffer[0] & 0xFF) : -1;
     }
 
     @Override

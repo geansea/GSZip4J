@@ -1,35 +1,47 @@
 package com.geansea.zip;
 
 import org.checkerframework.checker.index.qual.NonNegative;
-import org.checkerframework.checker.initialization.qual.UnderInitialization;
 import org.checkerframework.checker.nullness.qual.NonNull;
 import org.checkerframework.checker.nullness.qual.Nullable;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 public class GsZipFile {
-    private final @NonNull String name;
+    private final RandomAccessFile file;
+    private final GsZipCentralDirEnd dirEnd;
+    private final ArrayList<GsZipEntry> entryList;
+    private final GsZipEntryNode entryTree;
+    private @NonNull Charset defaultCharset;
     private @NonNull String password;
-    private @NonNull RandomAccessFile file;
-    private @NonNull GsZipCentralDirEnd dirEnd;
-    private @NonNull String comment;
-    private @NonNull ArrayList<GsZipEntry> entryList;
-    private @NonNull GsZipEntryNode entryTree;
 
-    public GsZipFile(@NonNull String path) throws IOException, GsZipException {
-        name = path;
-        password = "";
-        file = new RandomAccessFile(name, "r");
+    public static @NonNull GsZipFile create(@NonNull String path) throws GsZipException {
+        try {
+            GsZipFile zip = new GsZipFile(path);
+            zip.readCentralDirEnd();
+            zip.readCentralDir();
+            return zip;
+        } catch (IOException e) {
+            String message = e.getMessage();
+            throw new GsZipException(message != null ? message : "Create zip file failed");
+        }
+    }
+
+    private GsZipFile(@NonNull String path) throws IOException {
+        file = new RandomAccessFile(path, "r");
         dirEnd = new GsZipCentralDirEnd();
-        comment = "";
         entryList = new ArrayList<>();
         entryTree = new GsZipEntryNode(null, "");
-        readCentralDirEnd();
-        readCentralDir();
+        defaultCharset = StandardCharsets.UTF_8;
+        password = "";
+    }
+
+    public void setDefaultCharset(@NonNull Charset defaultCharset) {
+        this.defaultCharset = defaultCharset;
     }
 
     public boolean needPassword() {
@@ -47,60 +59,62 @@ public class GsZipFile {
         this.password = password;
     }
 
-    public @NonNull String getName() {
-        return name;
-    }
-
     public int size() {
         return entryList.size();
     }
 
     public @NonNull String getComment() {
-        return comment;
+        return dirEnd.getComment(defaultCharset);
     }
 
     public @NonNull GsZipEntry getEntry(@NonNegative int index) throws GsZipException {
+        GsZipUtil.check(index >= 0, "");
         GsZipUtil.check(index < entryList.size(), "");
         return entryList.get(index);
     }
 
-    public @NonNull GsZipInputStream getInputStream(int index) throws IOException, IndexOutOfBoundsException, GsZipException {
+    public @NonNull GsZipInputStream getInputStream(@NonNegative int index) throws GsZipException {
         GsZipEntry entry = getEntry(index);
         if (!entry.isFile()) {
             return new GsZipInputStream();
         }
         synchronized (this) {
-            GsZipEntryHeader localHeader = new GsZipEntryHeader();
-            GsZipInputStream entryStream = new SubInputStream(file, entry.getLocalOffset());
-            localHeader.readFrom(entryStream, false);
-            GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
-            GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
+            try {
+                GsZipInputStream entryStream = new SubInputStream(file, entry.getLocalOffset());
+                GsZipEntryHeader localHeader = new GsZipEntryHeader();
+                localHeader.readFrom(entryStream, false);
+                GsZipEntry localEntry = new GsZipEntry(0, localHeader, StandardCharsets.UTF_8);
+                GsZipUtil.check(entry.matchLocal(localEntry), "Entry header mismatch");
 
-            long offset = entry.getLocalOffset() + localHeader.byteSize(false);
-            GsZipInputStream subStream = new SubInputStream(file, offset, offset + localHeader.getCompSize());
-            GsZipInputStream decryptStream;
-            if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
-                decryptStream = subStream;
-            } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
-                GsZipUtil.check(!password.isEmpty(), "Need password");
-                byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
-                byte timeCheck = entry.getTimeCheck();
-                byte crcCheck = entry.getCrcCheck();
-                decryptStream = new PKWareDecryptInputStream(subStream, pwBytes, timeCheck, crcCheck);
-            } else {
-                throw new IOException("Not supported encrypt method");
+                long offset = entry.getLocalOffset() + localHeader.byteSize(false);
+                GsZipInputStream subStream = new SubInputStream(file, offset, offset + localHeader.getCompSize());
+                GsZipInputStream decryptStream;
+                if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.NONE) {
+                    decryptStream = subStream;
+                } else if (entry.getEncryptMethod() == GsZipEntry.EncryptMethod.PKWARE) {
+                    GsZipUtil.check(!password.isEmpty(), "Need password");
+                    byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
+                    byte timeCheck = entry.getTimeCheck();
+                    byte crcCheck = entry.getCrcCheck();
+                    decryptStream = new PKWareDecryptInputStream(subStream, pwBytes, timeCheck, crcCheck);
+                } else {
+                    throw new IOException("Not supported encrypt method");
+                }
+
+                GsZipInputStream uncompressStream;
+                if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
+                    uncompressStream = decryptStream;
+                } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
+                    uncompressStream = new InflaterInputStream(decryptStream);
+                } else {
+                    throw new IOException("Not supported compress method");
+                }
+
+                return uncompressStream;
+            } catch (IOException e) {
+                String message = e.getMessage();
+                throw  new GsZipException(message != null ? message : "Get entry stream failed");
             }
-
-            GsZipInputStream uncompressStream;
-            if (entry.getCompressMethod() == GsZipEntry.CompressMethod.STORED) {
-                uncompressStream = decryptStream;
-            } else if (entry.getCompressMethod() == GsZipEntry.CompressMethod.FLATE) {
-                uncompressStream = new InflaterInputStream(decryptStream);
-            } else {
-                throw new IOException("Not supported compress method");
-            }
-
-            return uncompressStream;
         }
     }
 
@@ -118,7 +132,7 @@ public class GsZipFile {
         return entryTree;
     }
 
-    private void readCentralDirEnd(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException, GsZipException {
+    private void readCentralDirEnd() throws IOException, GsZipException {
         long scanOffset = file.length() - GsZipCentralDirEnd.BASE_SIZE;
         GsZipUtil.check(scanOffset >= 0, "File too short to be a zip file");
 
@@ -140,12 +154,11 @@ public class GsZipFile {
         file.read(bytes);
 
         dirEnd.readFrom(bytes);
-        comment = dirEnd.getComment(StandardCharsets.UTF_8);
     }
 
-    private void readCentralDir(@UnderInitialization(GsZipFile.class)GsZipFile this) throws IOException, GsZipException {
-        int dirOffset = dirEnd.getDirOffset();
-        int dirSize = dirEnd.getDirSize();
+    private void readCentralDir() throws IOException, GsZipException {
+        long dirOffset = dirEnd.getDirOffset();
+        long dirSize = dirEnd.getDirSize();
         SubInputStream rafStream = new SubInputStream(file, dirOffset, dirOffset + dirSize);
 
         int entryCount = dirEnd.getEntryCount();

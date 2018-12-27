@@ -60,7 +60,7 @@ public class GsZipPackerTest {
         FileOutputStream zipStream = new FileOutputStream(zip);
         assertTrue(packer.packTo(zipStream, ""));
 
-        GsZipFile zipFile = new GsZipFile(zip.getAbsolutePath());
+        GsZipFile zipFile = GsZipFile.create(zip.getAbsolutePath());
         assertEquals(0, zipFile.size());
         assertEquals("test comment", zipFile.getComment());
     }

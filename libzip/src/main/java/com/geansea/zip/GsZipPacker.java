@@ -4,17 +4,15 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.RandomAccessFile;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
-import java.util.zip.Deflater;
-import java.util.zip.DeflaterInputStream;
 
 public class GsZipPacker {
     private @NonNull String comment;
@@ -107,20 +105,17 @@ public class GsZipPacker {
                 }
 
                 // File
-                InputStream entryStream = new FileInputStream(info.path);
-                entryStream = new BufferedInputStream(entryStream);
-                entryStream.mark(Integer.MAX_VALUE);
-                int crc = GsZipUtil.getStreamCRC(entryStream);
-                int origLength = GsZipUtil.getStreamLength(entryStream);
+                RandomAccessFile file = new RandomAccessFile(info.path, "r");
+                GsZipInputStream entryStream = new SubInputStream(file, 0);
+                int crc = GsZipUtil.calcStreamCRC(entryStream);
+                int origLength = GsZipUtil.calcStreamLength(entryStream);
                 header.setCRC(crc);
                 header.setCompSize(origLength);
                 header.setUncompSize(origLength);
 
                 if (origLength > 0) {
-                    InputStream compStream = new DeflaterInputStream(entryStream, new Deflater(Deflater.DEFAULT_COMPRESSION, true));
-                    compStream = new BufferedInputStream(compStream);
-                    compStream.mark(Integer.MAX_VALUE);
-                    int compLength = GsZipUtil.getStreamLength(compStream);
+                    GsZipInputStream compStream = new DeflaterInputStream(entryStream);
+                    int compLength = GsZipUtil.calcStreamLength(compStream);
                     if (compLength < origLength) {
                         header.setCompMethod(GsZipEntryHeader.COMPRESS_FLATE);
                         header.setCompSize(compLength);
@@ -132,10 +127,8 @@ public class GsZipPacker {
                     byte[] pwBytes = password.getBytes(StandardCharsets.UTF_8);
                     byte timeCheck = header.getTimeCheck();
                     // byte crcCheck = header.getCrcCheck();
-                    InputStream encStream = new GsZipPKWareEncryptStream(entryStream, pwBytes, timeCheck);
-                    encStream = new BufferedInputStream(encStream);
-                    encStream.mark(Integer.MAX_VALUE);
-                    int encLength = GsZipUtil.getStreamLength(encStream);
+                    GsZipInputStream encStream = new PKWareEncryptInputStream(entryStream, pwBytes, timeCheck);
+                    int encLength = GsZipUtil.calcStreamLength(encStream);
                     header.setEncMethod(GsZipEntryHeader.ENCRYPT_PKWARE);
                     header.setCompSize(encLength);
                     entryStream = encStream;
@@ -144,7 +137,7 @@ public class GsZipPacker {
                 header.writeTo(stream, false);
                 streamOffset += header.byteSize(false);
                 if (header.getCompSize() > 0) {
-                    entryStream.reset();
+                    entryStream.restart();
                     byte[] buffer = new byte[1024];
                     int count;
                     while ((count = entryStream.read(buffer)) > 0) {

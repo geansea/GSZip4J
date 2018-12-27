@@ -12,7 +12,7 @@ import java.util.LinkedList;
 public class GsZip {
     public static boolean unpackToFolder(@NonNull String zipPath, @NonNull String dirPath, @NonNull String password) {
         try {
-            GsZipFile zip = new GsZipFile(zipPath);
+            GsZipFile zip = GsZipFile.create(zipPath);
             File dir = new File(dirPath);
             GsZipUtil.check(!dir.exists(), "Folder already exist: " + dirPath);
             GsZipUtil.check(dir.mkdirs(), "Make dirs Failed");

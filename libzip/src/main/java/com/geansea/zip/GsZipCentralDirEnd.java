@@ -1,8 +1,5 @@
 package com.geansea.zip;
 
-import com.geansea.zip.GsZipException;
-import com.geansea.zip.GsZipUtil;
-
 import org.checkerframework.checker.index.qual.NonNegative;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
@@ -10,9 +7,9 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
-public class GsZipCentralDirEnd {
-    public static final int MAGIC = 0x06054b50; // "PK\x05\x06"
-    public static final int BASE_SIZE = 0x16;
+class GsZipCentralDirEnd {
+    static final int MAGIC = 0x06054b50; // "PK\x05\x06"
+    static final int BASE_SIZE = 0x16;
 
     private int sign;
     private short diskNum;
@@ -24,7 +21,7 @@ public class GsZipCentralDirEnd {
     private short commentLen;
     private byte[] comment;
 
-    public GsZipCentralDirEnd() {
+    GsZipCentralDirEnd() {
         sign = MAGIC;
         diskNum = 0;
         startDiskNum = 0;
@@ -36,77 +33,64 @@ public class GsZipCentralDirEnd {
         comment = new byte[commentLen];
     }
 
-    private void checkValid() throws GsZipException {
-        GsZipUtil.check(sign == MAGIC, "Error sign");
-        GsZipUtil.check(diskNum == 0, "Disk number should be 0");
-        GsZipUtil.check(startDiskNum == 0, "Start Disk number should be 0");
-        GsZipUtil.check(diskEntryNum == entryNum, "Entry number not match");
-        GsZipUtil.check(entryNum >= 0, "Error entry number");
+    int getEntryCount() {
+        return Short.toUnsignedInt(entryNum);
     }
 
-    private void checkValidForWrite() throws GsZipException {
-        checkValid();
-    }
-
-    public int getEntryCount() {
-        return entryNum;
-    }
-
-    public void setEntryCount(@NonNegative int count) {
+    void setEntryCount(@NonNegative int count) {
         entryNum = (short) count;
         diskEntryNum = entryNum;
     }
 
-    public int getDirOffset() {
-        return dirOffset;
+    long getDirOffset() {
+        return Integer.toUnsignedLong(dirOffset);
     }
 
-    public int getDirSize() {
-        return dirSize;
+    long getDirSize() {
+        return Integer.toUnsignedLong(dirSize);
     }
 
-    public void setDirRange(@NonNegative int offset, @NonNegative int size) {
-        dirOffset = offset;
-        dirSize = size;
+    void setDirRange(@NonNegative long offset, @NonNegative long size) {
+        dirOffset = (int) offset;
+        dirSize = (int) size;
     }
 
-    public @NonNull String getComment(@NonNull Charset charset) {
+    @NonNull String getComment(@NonNull Charset charset) {
         return new String(comment, charset);
     }
 
-    public void setComment(@NonNull String value, @NonNull Charset charset) {
+    void setComment(@NonNull String value, @NonNull Charset charset) {
         comment = value.getBytes(charset);
         commentLen = (short) comment.length;
     }
 
-    public void readFrom(byte @NonNull [] bytes) throws GsZipException {
-        GsZipUtil.check(bytes.length >= byteSize(), "Not enough length");
+    void readFrom(byte @NonNull [] bytes) throws GsZipException {
+        GsZipUtil.check(bytes.length >= BASE_SIZE, "Not enough length");
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
         sign = byteBuffer.getInt();
+        GsZipUtil.check(sign == MAGIC, "Error sign");
         diskNum = byteBuffer.getShort();
+        GsZipUtil.check(diskNum == 0, "Disk number should be 0");
         startDiskNum = byteBuffer.getShort();
+        GsZipUtil.check(startDiskNum == 0, "Start Disk number should be 0");
         diskEntryNum = byteBuffer.getShort();
         entryNum = byteBuffer.getShort();
+        GsZipUtil.check(diskEntryNum == entryNum, "Entry number not match");
         dirSize = byteBuffer.getInt();
         dirOffset = byteBuffer.getInt();
         commentLen = byteBuffer.getShort();
+        comment = new byte[commentLen];
         GsZipUtil.check(byteBuffer.position() == BASE_SIZE, "Error size");
         GsZipUtil.check(bytes.length >= byteSize(), "Not enough length");
-
-        if (commentLen > 0) {
-            comment = new byte[commentLen];
-            byteBuffer.get(comment);
-        }
-        checkValid();
+        byteBuffer.get(comment);
     }
 
-    public int byteSize() {
+    int byteSize() {
         return BASE_SIZE + commentLen;
     }
 
-    public void writeTo(byte @NonNull [] bytes) throws GsZipException {
-        checkValidForWrite();
+    void writeTo(byte @NonNull [] bytes) throws GsZipException {
         GsZipUtil.check(bytes.length >= byteSize(), "Not enough length");
 
         ByteBuffer byteBuffer = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN);
@@ -119,9 +103,6 @@ public class GsZipCentralDirEnd {
         byteBuffer.putInt(dirOffset);
         byteBuffer.putShort(commentLen);
         GsZipUtil.check(byteBuffer.position() == BASE_SIZE, "Error size");
-
-        if (commentLen > 0) {
-            byteBuffer.put(comment);
-        }
+        byteBuffer.put(comment);
     }
 }

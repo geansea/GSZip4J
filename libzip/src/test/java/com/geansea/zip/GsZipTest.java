@@ -91,7 +91,7 @@ public class GsZipTest {
 
         assertTrue(GsZip.packFolder(dirPath, zipPath, "geansea", true));
 
-        GsZipFile zipFile = new GsZipFile(zipPath);
+        GsZipFile zipFile = GsZipFile.create(zipPath);
         assertEquals(6, zipFile.size());
         assertTrue(zipFile.needPassword());
         zipFile.setPassword("geansea");
@@ -115,7 +115,7 @@ public class GsZipTest {
 
         assertTrue(GsZip.packFile(filePath, zipPath, ""));
 
-        GsZipFile zipFile = new GsZipFile(zipPath);
+        GsZipFile zipFile = GsZipFile.create(zipPath);
         assertNotNull(zipFile);
         assertEquals(1, zipFile.size());
         GsZipFileTest.fileEntryCheck(zipFile, "file_1.txt", 256);
@@ -132,7 +132,7 @@ public class GsZipTest {
 
         assertTrue(GsZip.packFile(filePath, zipPath, "geansea"));
 
-        GsZipFile zipFile = new GsZipFile(zipPath);
+        GsZipFile zipFile = GsZipFile.create(zipPath);
         assertEquals(1, zipFile.size());
         assertTrue(zipFile.needPassword());
         zipFile.setPassword("geansea");
