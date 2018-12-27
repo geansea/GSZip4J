@@ -19,12 +19,12 @@ public class GsZipEntry {
     }
 
     private final int index;
-    private final @NonNull
-    EntryHeader header;
-    private final @NonNull
-    String name;
-    private final @NonNull
-    Date time;
+    @NonNull
+    private final EntryHeader header;
+    @NonNull
+    private final String name;
+    @NonNull
+    private final Date time;
 
     GsZipEntry(int index, @NonNull EntryHeader header, @NonNull Charset charset) {
         this.index = index;
@@ -41,8 +41,8 @@ public class GsZipEntry {
         return header.matchLocal(entry.header);
     }
 
-    public @NonNull
-    String getName() {
+    @NonNull
+    public String getName() {
         return name;
     }
 

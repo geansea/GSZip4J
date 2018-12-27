@@ -173,12 +173,12 @@ public class GsZipPacker {
     }
 
     private static class EntryInfo {
-        final @NonNull
-        String name;
-        final @NonNull
-        String path;
-        final @NonNull
-        EntryHeader header;
+        @NonNull
+        final String name;
+        @NonNull
+        final String path;
+        @NonNull
+        final EntryHeader header;
 
         EntryInfo(@NonNull String entryName, @NonNull String fileName) {
             name = entryName;

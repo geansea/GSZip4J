@@ -66,7 +66,8 @@ final class GsZipUtil {
      * @param path the path to normalize
      * @return normalized path
      */
-    static @NonNull String normalizePath(@NonNull String path) {
+    @NonNull
+    static String normalizePath(@NonNull String path) {
         Stack<String> parts = new Stack<>();
         for (String part : path.split("[/\\\\]")) {
             if (part.isEmpty()) {
@@ -86,7 +87,8 @@ final class GsZipUtil {
         return String.join("/", parts);
     }
 
-    static @NonNull String getCanonicalPath(@NonNull String path) {
+    @NonNull
+    static String getCanonicalPath(@NonNull String path) {
         Stack<String> parts = new Stack<>();
         for (String part : path.split("[/\\\\]")) {
             if (part.isEmpty()) {
@@ -106,7 +108,8 @@ final class GsZipUtil {
         return String.join("/", parts);
     }
 
-    public static @NonNull String getParentPath(@NonNull String path) {
+    @NonNull
+    public static String getParentPath(@NonNull String path) {
         int parentPos = path.indexOf("/");
         if (parentPos < 0) {
             return "";

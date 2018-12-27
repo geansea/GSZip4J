@@ -23,8 +23,8 @@ public class GsZipFile {
     @NonNull
     private String password;
 
-    public static @NonNull
-    GsZipFile create(@NonNull String path) throws GsZipException {
+    @NonNull
+    public static GsZipFile create(@NonNull String path) throws GsZipException {
         try {
             GsZipFile zip = new GsZipFile(path);
             zip.readCentralDirEnd();
@@ -68,20 +68,20 @@ public class GsZipFile {
         return entryList.size();
     }
 
-    public @NonNull
-    String getComment() {
+    @NonNull
+    public String getComment() {
         return dirEnd.getComment(defaultCharset);
     }
 
-    public @NonNull
-    GsZipEntry getEntry(int index) throws GsZipException {
+    @NonNull
+    public GsZipEntry getEntry(int index) throws GsZipException {
         GsZipUtil.check(index >= 0, "");
         GsZipUtil.check(index < entryList.size(), "");
         return entryList.get(index);
     }
 
-    public @NonNull
-    GsZipInputStream getInputStream(int index) throws GsZipException {
+    @NonNull
+    public GsZipInputStream getInputStream(int index) throws GsZipException {
         GsZipEntry entry = getEntry(index);
         if (!entry.isFile()) {
             return new GsZipInputStream();
@@ -138,8 +138,8 @@ public class GsZipFile {
         return ((entry != null) ? getInputStream(entry.getIndex()) : null);
     }
 
-    public @NonNull
-    GsZipEntryNode getEntryTree() {
+    @NonNull
+    public GsZipEntryNode getEntryTree() {
         return entryTree;
     }
 
@@ -178,7 +178,7 @@ public class GsZipFile {
             EntryHeader header = new EntryHeader();
             header.readFrom(rafStream, true);
 
-            GsZipEntry entry = new GsZipEntry(i, header, StandardCharsets.UTF_8);
+            GsZipEntry entry = new GsZipEntry(i, header, defaultCharset);
             entryList.add(entry);
             entryTree.addChild(entry.getName(), entry);
         }

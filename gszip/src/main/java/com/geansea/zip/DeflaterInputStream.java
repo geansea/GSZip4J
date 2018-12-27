@@ -6,12 +6,12 @@ import java.io.IOException;
 import java.util.zip.Deflater;
 
 final class DeflaterInputStream extends GsZipInputStream {
-    private final @NonNull
-    GsZipInputStream base;
-    private final @NonNull
-    Deflater deflater;
-    private final @NonNull
-    byte[] inputBuffer;
+    @NonNull
+    private final GsZipInputStream base;
+    @NonNull
+    private final Deflater deflater;
+    @NonNull
+    private final byte[] inputBuffer;
     private int inputLength;
 
     DeflaterInputStream(@NonNull GsZipInputStream base) throws IOException {

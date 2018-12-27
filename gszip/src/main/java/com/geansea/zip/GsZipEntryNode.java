@@ -8,12 +8,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class GsZipEntryNode {
-    private final @NonNull
-    WeakReference<GsZipEntryNode> parent;
-    private final @NonNull
-    HashMap<String, GsZipEntryNode> children;
-    private final @NonNull
-    String name;
+    @NonNull
+    private final WeakReference<GsZipEntryNode> parent;
+    @NonNull
+    private final HashMap<String, GsZipEntryNode> children;
+    @NonNull
+    private final String name;
     @Nullable
     private GsZipEntry entry;
 
@@ -24,23 +24,23 @@ public class GsZipEntryNode {
         entry = null;
     }
 
-    public @Nullable
-    GsZipEntryNode getParent() {
+    @Nullable
+    public GsZipEntryNode getParent() {
         return parent.get();
     }
 
-    public @NonNull
-    ArrayList<GsZipEntryNode> getChildren() {
+    @NonNull
+    public ArrayList<GsZipEntryNode> getChildren() {
         return new ArrayList<>(children.values());
     }
 
-    public @NonNull
-    String getName() {
+    @NonNull
+    public String getName() {
         return name;
     }
 
-    public @Nullable
-    GsZipEntry getEntry() {
+    @Nullable
+    public GsZipEntry getEntry() {
         return entry;
     }
 

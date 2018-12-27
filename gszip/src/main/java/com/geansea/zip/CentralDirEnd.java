@@ -49,7 +49,7 @@ final class CentralDirEnd {
         return ((long) dirSize) & 0xFFFFFFFFL;
     }
 
-    void setDirRange(long offset,long size) {
+    void setDirRange(long offset, long size) {
         dirOffset = (int) offset;
         dirSize = (int) size;
     }
@@ -87,7 +87,7 @@ final class CentralDirEnd {
     }
 
     int byteSize() {
-        return BASE_SIZE + commentLen;
+        return BASE_SIZE + commentLen & 0xFFFF;
     }
 
     void writeTo(@NonNull byte[] bytes) throws GsZipException {
