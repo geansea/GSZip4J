@@ -29,11 +29,11 @@ final class EntryHeader {
 
     private static final short BITFLAG_ENCRYPT_MASK = BITFLAG_ENCRYPTED | BITFLAG_STRONG_ENCRYPTION;
 
-    public static final short ENCRYPT_NONE = 0x00;
-    public static final short ENCRYPT_PKWARE = BITFLAG_ENCRYPTED;
+    static final short ENCRYPT_NONE = 0x00;
+    static final short ENCRYPT_PKWARE = BITFLAG_ENCRYPTED;
 
-    public static final short COMPRESS_STORED = 0x00;
-    public static final short COMPRESS_FLATE = 0x08;
+    static final short COMPRESS_STORED = 0x00;
+    static final short COMPRESS_FLATE = 0x08;
 
     private static final short UNICODE_PATH_EXTRA_FIELD_ID = 0x7075;
 
@@ -58,7 +58,7 @@ final class EntryHeader {
     private byte[] extraField;
     private byte[] comment;
 
-    public EntryHeader() {
+    EntryHeader() {
         sign = CENTRAL_MAGIC;
         versionMadeBy = 0x0014;
         versionNeeded = 0x0014;
@@ -92,7 +92,7 @@ final class EntryHeader {
         GsZipUtil.check(compMethod == COMPRESS_STORED || compMethod == COMPRESS_FLATE, "Error compress method");
     }
 
-    public boolean matchLocal(@NonNull EntryHeader header) {
+    boolean matchLocal(@NonNull EntryHeader header) {
         boolean match = (compMethod == header.compMethod
                 && (bitFlags & BITFLAG_ENCRYPT_MASK) == (header.bitFlags & BITFLAG_ENCRYPT_MASK)
                 && fileNameLen == header.fileNameLen
@@ -105,27 +105,27 @@ final class EntryHeader {
         return match;
     }
 
-    public void setSign(boolean central) {
+    void setSign(boolean central) {
         sign = (central ? CENTRAL_MAGIC : LOCAL_MAGIC);
     }
 
-    public int getEncMethod() {
+    int getEncMethod() {
         return bitFlags & BITFLAG_ENCRYPT_MASK;
     }
 
-    public void setEncMethod(int method) {
+    void setEncMethod(int method) {
         bitFlags |= (short) method;
     }
 
-    public int getCompMethod() {
+    int getCompMethod() {
         return compMethod;
     }
 
-    public void setCompMethod(int method) {
+    void setCompMethod(int method) {
         compMethod = (short) method;
     }
 
-    public @NonNull Date getLastModifiedTime() {
+    @NonNull Date getLastModifiedTime() {
         GregorianCalendar cal = new GregorianCalendar();
         cal.set(Calendar.MILLISECOND, 0);
         cal.set(1980 + ((lastModDate >> 9) & 0x7f),
@@ -137,7 +137,7 @@ final class EntryHeader {
         return cal.getTime();
     }
 
-    public void setLastModifiedTime(@NonNull Date time) {
+    void setLastModifiedTime(@NonNull Date time) {
         GregorianCalendar cal = new GregorianCalendar();
         cal.setTime(time);
         int year = cal.get(Calendar.YEAR);
@@ -154,39 +154,39 @@ final class EntryHeader {
         }
     }
 
-    public int getCRC() {
+    int getCRC() {
         return CRC;
     }
 
-    public void setCRC(int crc) {
+    void setCRC(int crc) {
         CRC = crc;
     }
 
-    public int getCompSize() {
+    int getCompSize() {
         return compSize;
     }
 
-    public void setCompSize(int size) {
+    void setCompSize(int size) {
         compSize = size;
     }
 
-    public int getUncompSize() {
+    int getUncompSize() {
         return uncompSize;
     }
 
-    public void setUncompSize(int size) {
+    void setUncompSize(int size) {
         uncompSize = size;
     }
 
-    public byte getTimeCheck() {
+    byte getTimeCheck() {
         return (byte) (lastModTime >>> 8);
     }
 
-    public byte getCrcCheck() {
+    byte getCrcCheck() {
         return (byte) (CRC >>> 24);
     }
 
-    public @NonNull String getFileName(@NonNull Charset charset) {
+    @NonNull String getFileName(@NonNull Charset charset) {
         if ((bitFlags & BITFLAG_LANGUAGE_UTF8) != 0) {
             return new String(fileName, StandardCharsets.UTF_8);
         }
@@ -217,20 +217,20 @@ final class EntryHeader {
         return new String(fileName, charset);
     }
 
-    public void setFileName(@NonNull String name) {
+    void setFileName(@NonNull String name) {
         fileName = name.getBytes(StandardCharsets.UTF_8);
         fileNameLen = (short) fileName.length;
     }
 
-    public int getLocalOffset() {
+    int getLocalOffset() {
         return localOffset;
     }
 
-    public void setLocalOffset(int offset) {
+    void setLocalOffset(int offset) {
         localOffset = offset;
     }
 
-    public void readFrom(@NonNull InputStream stream, boolean central) throws IOException, GsZipException {
+    void readFrom(@NonNull InputStream stream, boolean central) throws IOException, GsZipException {
         int headerSize = central ? CENTRAL_HEADER_SIZE : LOCAL_HEADER_SIZE;
         byte[] bytes = new byte[headerSize];
         GsZipUtil.check(stream.read(bytes) == bytes.length, "Read fail");
@@ -270,7 +270,7 @@ final class EntryHeader {
         checkValid(central);
     }
 
-    public int byteSize(boolean central) {
+    int byteSize(boolean central) {
         if (central) {
             return CENTRAL_HEADER_SIZE + fileNameLen + extraFieldLen + commentLen;
         } else {
@@ -278,7 +278,7 @@ final class EntryHeader {
         }
     }
 
-    public void writeTo(@NonNull OutputStream stream, boolean central) throws IOException, GsZipException {
+    void writeTo(@NonNull OutputStream stream, boolean central) throws IOException, GsZipException {
         checkValidForWrite(central);
         int headerSize = central ? CENTRAL_HEADER_SIZE : LOCAL_HEADER_SIZE;
         byte[] bytes = new byte[headerSize];

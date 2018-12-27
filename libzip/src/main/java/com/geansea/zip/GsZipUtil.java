@@ -3,7 +3,6 @@ package com.geansea.zip;
 import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.Stack;
 import java.util.zip.CRC32;
 
