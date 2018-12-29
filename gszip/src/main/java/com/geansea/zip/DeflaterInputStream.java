@@ -28,14 +28,6 @@ final class DeflaterInputStream extends GsZipInputStream {
     }
 
     @Override
-    public int read() throws IOException {
-        ensureOpen();
-        byte[] buffer = new byte[1];
-        int count = read(buffer);
-        return (count > 0 ? (buffer[0] & 0xFF) : -1);
-    }
-
-    @Override
     public int read(@NonNull byte[] b, int off, int len) throws IOException {
         ensureOpen();
         if (len == 0) {

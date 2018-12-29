@@ -1,5 +1,7 @@
 package com.geansea.zip;
 
+import android.support.annotation.NonNull;
+
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -11,7 +13,15 @@ public class GsZipInputStream extends InputStream {
 
     @Override
     public int read() throws IOException {
-        return -1;
+        ensureOpen();
+        byte[] buffer = new byte[1];
+        int count = read(buffer);
+        return (count > 0 ? (buffer[0] & 0xFF) : -1);
+    }
+
+    @Override
+    public int read(@NonNull byte[] b, int off, int len) throws IOException {
+        throw new IOException("This method should be overridden by subclasses");
     }
 
     @Override
