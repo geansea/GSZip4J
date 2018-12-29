@@ -37,23 +37,23 @@ final class EntryHeader {
 
     private static final short UNICODE_PATH_EXTRA_FIELD_ID = 0x7075;
 
-    private int     sign;          // (cl)
-    private short   versionMadeBy; // (c)
-    private short   versionNeeded; // (cl)
-    private short   bitFlags;      // (cl)
-    private short   compMethod;    // (cl)
-    private short   lastModTime;   // (cl)
-    private short   lastModDate;   // (cl)
-    private int     CRC;           // (cl) CRC-32
-    private int     compSize;      // (cl)
-    private int     uncompSize;    // (cl)
-    private short   fileNameLen;   // (cl)
-    private short   extraFieldLen; // (cl)
-    private short   commentLen;    // (c)
-    private short   diskNumber;    // (c)
-    private short   intAttrib;     // (c)
-    private int     extAttrib;     // (c)
-    private int     localOffset;   // (c)
+    private int sign;            // (cl)
+    private short versionMadeBy; // (c)
+    private short versionNeeded; // (cl)
+    private short bitFlags;      // (cl)
+    private short compMethod;    // (cl)
+    private short lastModTime;   // (cl)
+    private short lastModDate;   // (cl)
+    private int CRC;             // (cl) CRC-32
+    private int compSize;        // (cl)
+    private int uncompSize;      // (cl)
+    private short fileNameLen;   // (cl)
+    private short extraFieldLen; // (cl)
+    private short commentLen;    // (c)
+    private short diskNumber;    // (c)
+    private short intAttrib;     // (c)
+    private int extAttrib;       // (c)
+    private int localOffset;     // (c)
     private byte[] fileName;
     private byte[] extraField;
     private byte[] comment;
@@ -125,7 +125,8 @@ final class EntryHeader {
         compMethod = (short) method;
     }
 
-    @NonNull Date getLastModifiedTime() {
+    @NonNull
+    Date getLastModifiedTime() {
         GregorianCalendar cal = new GregorianCalendar();
         cal.set(Calendar.MILLISECOND, 0);
         cal.set(1980 + ((lastModDate >> 9) & 0x7f),
@@ -186,7 +187,8 @@ final class EntryHeader {
         return (byte) (CRC >>> 24);
     }
 
-    @NonNull String getFileName(@NonNull Charset charset) {
+    @NonNull
+    String getFileName(@NonNull Charset charset) {
         if ((bitFlags & BITFLAG_LANGUAGE_UTF8) != 0) {
             return new String(fileName, StandardCharsets.UTF_8);
         }
@@ -256,17 +258,11 @@ final class EntryHeader {
         GsZipUtil.check(byteBuffer.remaining() == 0, "Error size");
 
         fileName = new byte[fileNameLen];
-        if (fileNameLen > 0) {
-            GsZipUtil.check(stream.read(fileName) == fileNameLen, "Read fail");
-        }
+        GsZipUtil.check(stream.read(fileName) == fileNameLen, "Read fail");
         extraField = new byte[extraFieldLen];
-        if (extraFieldLen > 0) {
-            GsZipUtil.check(stream.read(extraField) == extraFieldLen, "Read fail");
-        }
+        GsZipUtil.check(stream.read(extraField) == extraFieldLen, "Read fail");
         comment = new byte[commentLen];
-        if (commentLen > 0) {
-            GsZipUtil.check(stream.read(comment) == commentLen, "Read fail");
-        }
+        GsZipUtil.check(stream.read(comment) == commentLen, "Read fail");
         checkValid(central);
     }
 
@@ -306,15 +302,8 @@ final class EntryHeader {
         }
         GsZipUtil.check(byteBuffer.remaining() == 0, "Error size");
         stream.write(bytes);
-
-        if (fileNameLen > 0) {
-            stream.write(fileName);
-        }
-        if (extraFieldLen > 0) {
-            stream.write(extraField);
-        }
-        if (commentLen > 0) {
-            stream.write(comment);
-        }
+        stream.write(fileName);
+        stream.write(extraField);
+        stream.write(comment);
     }
 }
